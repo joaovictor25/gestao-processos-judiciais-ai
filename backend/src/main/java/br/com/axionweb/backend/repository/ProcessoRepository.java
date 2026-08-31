@@ -1,0 +1,8 @@
+package br.com.axionweb.backend.repository;
+
+import br.com.axionweb.backend.model.Processo;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ProcessoRepository extends JpaRepository<Processo, Long> {
+
+}
