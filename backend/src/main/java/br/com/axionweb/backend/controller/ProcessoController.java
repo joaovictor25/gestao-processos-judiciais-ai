@@ -38,4 +38,9 @@ public class ProcessoController {
     public Processo buscarPorNumProcesso(@RequestParam String numeroProcesso){
         return processoService.buscarPorNumProcesso(numeroProcesso);
     }
+
+    @GetMapping("/solicitar-analise/{id}")
+    public String solicitarAnalise(@PathVariable Long id){
+        return processoService.solicitarAnalise(id);
+    }
 }

@@ -1,18 +1,27 @@
 package br.com.axionweb.backend.service;
 
+import br.com.axionweb.backend.dto.comunicacao.ParametrosComunicacaoDTO;
 import br.com.axionweb.backend.model.Processo;
 import br.com.axionweb.backend.repository.ProcessoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProcessoService {
 
     @Autowired
     ProcessoRepository repository;
+
+    @Autowired
+    @Qualifier("restComunicacao")
+    RestClient restComunicacao;
+
+    ParametrosComunicacaoDTO parametro = new ParametrosComunicacaoDTO();
 
     //Cadastro dos processos
     public Processo cadastrar(Processo processo){
@@ -57,4 +66,43 @@ public class ProcessoService {
     public Processo buscarPorNumProcesso(String numeroProcesso){
         return repository.findByNumeroProcesso(numeroProcesso);
     }
+
+
+    public ParametrosComunicacaoDTO montarParametro(Long id){
+        Processo processo = repository.findById(id).orElseThrow(() -> new RuntimeException("Processo não encontrado"));
+        parametro.setNumeroProcesso(processo.getNumeroProcesso());
+        parametro.setSiglaTribunal(processo.getTribunal());
+        parametro.setDataDisponibilizacaoInicio(processo.getDataDistribuicao());
+        parametro.setDataDisponibilizacaoFim(LocalDate.now());
+        parametro.setMeio("D");
+        parametro.setPagina(2);
+        parametro.setPagina(100);
+        return parametro;
+    }
+
+    public String solicitarAnalise(Long id){
+
+        ParametrosComunicacaoDTO atualParametro = montarParametro(id);
+
+        return restComunicacao.get()
+                .uri(
+            uriBuilder -> uriBuilder
+                    .path("/api/v1/comunicacao")
+                    //.queryParam("numeroProcesso", atualParametro.getNumeroProcesso())
+                    .queryParam("siglaTribunal", atualParametro.getSiglaTribunal())
+                    .queryParam("dataDisponibilizacaoInicio", atualParametro.getDataDisponibilizacaoInicio())
+                    .queryParam("dataDisponibilizacaoFim", atualParametro.getDataDisponibilizacaoFim())
+                    .queryParam("meio", atualParametro.getMeio())
+                    .queryParam("pagina", atualParametro.getPagina())
+                    .queryParam("itensPorPagina", atualParametro.getItensPorPagina())
+                    .build()
+                )
+                .retrieve()
+                .body(String.class);
+    }
+
+
+
+
+
 }
