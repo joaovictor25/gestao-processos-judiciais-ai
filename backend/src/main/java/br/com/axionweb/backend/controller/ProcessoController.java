@@ -41,6 +41,6 @@ public class ProcessoController {
 
     @GetMapping("/solicitar-analise/{id}")
     public String solicitarAnalise(@PathVariable Long id){
-        return processoService.solicitarAnalise(id);
+        return processoService.analisar(id);
     }
 }

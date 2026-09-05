@@ -17,11 +17,10 @@ public class ProcessoService {
     @Autowired
     ProcessoRepository repository;
 
-    @Autowired
-    @Qualifier("restComunicacao")
-    RestClient restComunicacao;
 
-    ParametrosComunicacaoDTO parametro = new ParametrosComunicacaoDTO();
+
+    @Autowired
+    AnaliseService analise;
 
     //Cadastro dos processos
     public Processo cadastrar(Processo processo){
@@ -68,41 +67,11 @@ public class ProcessoService {
     }
 
 
-    public ParametrosComunicacaoDTO montarParametro(Long id){
-        Processo processo = repository.findById(id).orElseThrow(() -> new RuntimeException("Processo não encontrado"));
-        parametro.setNumeroProcesso(processo.getNumeroProcesso());
-        parametro.setSiglaTribunal(processo.getTribunal());
-        parametro.setDataDisponibilizacaoInicio(processo.getDataDistribuicao());
-        parametro.setDataDisponibilizacaoFim(LocalDate.now());
-        parametro.setMeio("D");
-        parametro.setPagina(2);
-        parametro.setPagina(100);
-        return parametro;
+
+
+
+
+    public String analisar(Long id){
+        return analise.solicitarAnalise(id);
     }
-
-    public String solicitarAnalise(Long id){
-
-        ParametrosComunicacaoDTO atualParametro = montarParametro(id);
-
-        return restComunicacao.get()
-                .uri(
-            uriBuilder -> uriBuilder
-                    .path("/api/v1/comunicacao")
-                    //.queryParam("numeroProcesso", atualParametro.getNumeroProcesso())
-                    .queryParam("siglaTribunal", atualParametro.getSiglaTribunal())
-                    .queryParam("dataDisponibilizacaoInicio", atualParametro.getDataDisponibilizacaoInicio())
-                    .queryParam("dataDisponibilizacaoFim", atualParametro.getDataDisponibilizacaoFim())
-                    .queryParam("meio", atualParametro.getMeio())
-                    .queryParam("pagina", atualParametro.getPagina())
-                    .queryParam("itensPorPagina", atualParametro.getItensPorPagina())
-                    .build()
-                )
-                .retrieve()
-                .body(String.class);
-    }
-
-
-
-
-
 }
