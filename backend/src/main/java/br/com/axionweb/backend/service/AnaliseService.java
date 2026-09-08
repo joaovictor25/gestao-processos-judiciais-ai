@@ -28,7 +28,7 @@ public class AnaliseService {
 
         //DataJud
         ParametrosDataJudDTO parametrosDataJud = dataJudService.montarParametroDataJud(processo);
-
+        String resultadoDataJud = dataJudService.consumirApiDataJud(parametrosDataJud);
         //Contexto
 
 

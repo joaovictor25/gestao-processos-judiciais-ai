@@ -14,7 +14,7 @@ public class RestComunicacaoConfig {
                 .build();
     }
 
-    @Bean("RestDataJud")
+    @Bean("restDataJud")
     public RestClient restDataJud(){
         return RestClient.builder()
                 .baseUrl("https://api-publica.datajud.cnj.jus.br")
