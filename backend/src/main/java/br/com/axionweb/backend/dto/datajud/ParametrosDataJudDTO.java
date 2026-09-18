@@ -8,15 +8,17 @@ public class ParametrosDataJudDTO {
     private String classeProcessual;
     private String assunto;
     private String orgaoJulgador;
-    private String comarca;
-    private String uf;
+    private String comarca; //Estudar se esse atributo esta sendo utilizado
+    private String uf; //Estudar se esse atributo esta sendo utilizado
 
     //Amostra temporal
-    private LocalDate dataInicio;
-    private LocalDate dataFim;
+    private LocalDate dataInicio; //Estudar se esse atributo esta sendo utilizado
+    private LocalDate dataFim; //Estudar se esse atributo esta sendo utilizado
 
     //Quantidade da amostra
     private Integer quantidadeResultado;
+
+    //Adicionar um atributo de grau
 
 
     //Definido os Getters e Setters
@@ -79,7 +81,7 @@ public class ParametrosDataJudDTO {
     public void setQuantidadeResultado(Integer quantidadeResultado){
         this.quantidadeResultado = quantidadeResultado;
     }
-    public Integer getQuantidadeResultado(){
+    public Integer getQuantidadeResultados(){
         return quantidadeResultado;
     }
 }

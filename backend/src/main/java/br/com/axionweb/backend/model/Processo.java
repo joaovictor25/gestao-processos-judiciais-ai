@@ -37,6 +37,7 @@ public class Processo {
     private String nomeMagistrado;
     @Column(name="data_distribuicao")
     private LocalDate dataDistribuicao;
+    //Atributo de Grau
 
     public Long getId(){
         return id;
