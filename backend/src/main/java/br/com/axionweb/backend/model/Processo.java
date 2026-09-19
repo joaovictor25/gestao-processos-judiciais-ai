@@ -19,6 +19,8 @@ public class Processo {
     private String tribunal;
     @Column(name="orgao_julgador")
     private String orgaoJulgador;
+    @Column(name="grau")
+    private String grau;
     @Column(name="comarca")
     private String comarca;
     @Column(name="uf")
@@ -77,6 +79,14 @@ public class Processo {
     public String getOrgaoJulgador(){
         return orgaoJulgador;
     }
+
+    public void setGrau(String grau){
+        this.grau = grau;
+    }
+    public String getGrau(){
+        return grau;
+    }
+
 
     public void setComarca(String comarca){
         this.comarca = comarca;

@@ -8,6 +8,7 @@ public class ParametrosDataJudDTO {
     private String classeProcessual;
     private String assunto;
     private String orgaoJulgador;
+    private String grau;
     private String comarca; //Estudar se esse atributo esta sendo utilizado
     private String uf; //Estudar se esse atributo esta sendo utilizado
 
@@ -48,6 +49,13 @@ public class ParametrosDataJudDTO {
     }
     public String getOrgaoJulgador(){
         return orgaoJulgador;
+    }
+
+    public void setGrau(String grau){
+        this.grau = grau;
+    }
+    public String getGrau(){
+        return grau;
     }
 
     public void setComarca(String comarca){
