@@ -51,14 +51,14 @@ public class DataJudService {
 
         parametro.setComarca(
                 processo.getComarca()
-        );
+        );//Provavelmente vou retirar
 
         parametro.setUf(
                 processo.getUf()
-        );
+        );//Provavelmente vou retirar
 
         parametro.setDataInicio(
-                processo.getDataDistribuicao()
+                processo.getDataInicio()
         );
 
         parametro.setDataFim(
@@ -70,7 +70,8 @@ public class DataJudService {
         return parametro;
     }
 
-
+    //Avaliar o quanto posso ser flaxivel no uso dos parametros para busca
+    //Tribunal - Classe - Orgão - Assunto - Grau - Quantidade
     public RespostaDataJudDTO consumirApiDataJud(
             ParametrosDataJudDTO parametro) {
 
@@ -119,48 +120,91 @@ public class DataJudService {
         List<Map<String, Object>> filtros =
                 new ArrayList<>();
 
-        filtros.add(
-                Map.of(
-                        "match",
+        if(!parametros.getClasseProcessual().getCodigo().isBlank() || !parametros.getClasseProcessual().getNome().isBlank()){
+            if(!parametros.getClasseProcessual().getCodigo().isBlank()){
+                filtros.add(
                         Map.of(
-                                "classe.nome",
-                                parametros.getClasseProcessual()
+                                "match",
+                                Map.of(
+                                        "classe.codigo",
+                                        parametros.getClasseProcessual().getCodigo()
+                                )
                         )
-                )
-        );
-
-        filtros.add(
-                Map.of(
-                        "match",
+                );
+            }else{
+                filtros.add(
                         Map.of(
-                                "assuntos.nome",
-                                parametros.getAssunto()
+                                "match",
+                                Map.of(
+                                        "classe.nome",
+                                        parametros.getClasseProcessual().getNome()
+                                )
                         )
-                )
-        );
+                );
+            }
+        }
 
-        if (parametros.getOrgaoJulgador() != null) {
+        if(!parametros.getAssunto().getCodigo().isBlank() || !parametros.getAssunto().getNome().isBlank()){
+            if(!parametros.getAssunto().getCodigo().isBlank()){
+                filtros.add(
+                        Map.of(
+                                "match",
+                                Map.of(
+                                        "assuntos.codigo",
+                                        parametros.getAssunto().getCodigo()
+                                )
+                        )
+                );
+            }else{
+                filtros.add(
+                        Map.of(
+                                "match",
+                                Map.of(
+                                        "assuntos.nome",
+                                        parametros.getAssunto().getNome()
+                                )
+                        )
+                );
+            }
+        }
 
+
+        if(!parametros.getOrgaoJulgador().getCodigo().isBlank() || !parametros.getOrgaoJulgador().getNome().isBlank()){
+            if (!parametros.getOrgaoJulgador().getCodigo().isBlank()) {
+                filtros.add(
+                        Map.of(
+                                "match",
+                                Map.of(
+                                        "orgaoJulgador.codigo",
+                                        parametros.getOrgaoJulgador().getCodigo()
+                                )
+                        )
+                );
+            }else{
+                filtros.add(
+                        Map.of(
+                                "match",
+                                Map.of(
+                                        "orgaoJulgador.nome",
+                                        parametros.getOrgaoJulgador().getNome()
+                                )
+                        )
+                );
+            }
+        }
+
+        if(!parametros.getGrau().isBlank()){
             filtros.add(
                     Map.of(
                             "match",
                             Map.of(
-                                    "orgaoJulgador.nome",
-                                    parametros.getOrgaoJulgador()
+                                    "grau",
+                                    parametros.getGrau()
                             )
                     )
             );
         }
 
-        filtros.add(
-                Map.of(
-                        "match",
-                        Map.of(
-                                "grau",
-                                parametros.getGrau()
-                        )
-                )
-        );
 
         return Map.of(
                 "size",

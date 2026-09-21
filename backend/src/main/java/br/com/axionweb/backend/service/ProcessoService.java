@@ -1,5 +1,6 @@
 package br.com.axionweb.backend.service;
 
+import br.com.axionweb.backend.dto.comunicacao.ComunicacaoResponseDTO;
 import br.com.axionweb.backend.dto.comunicacao.ParametrosComunicacaoDTO;
 import br.com.axionweb.backend.dto.datajud.DadosDataJudDTO;
 import br.com.axionweb.backend.model.Processo;
@@ -47,7 +48,7 @@ public class ProcessoService {
         processoNovo.setStatus(processo.getStatus());
         processoNovo.setValorCausa(processo.getValorCausa());
         processoNovo.setNomeMagistrado(processo.getNomeMagistrado());
-        processoNovo.setDataDistribuicao(processo.getDataDistribuicao());
+        processoNovo.setDataInicio(processo.getDataInicio());
 
         return repository.save(processoNovo);
     }
@@ -72,7 +73,7 @@ public class ProcessoService {
 
 
 
-    public List<DadosDataJudDTO> analisar(Long id){
+    public ComunicacaoResponseDTO analisar(Long id){
         return analise.solicitarAnalise(id);
     }
 }

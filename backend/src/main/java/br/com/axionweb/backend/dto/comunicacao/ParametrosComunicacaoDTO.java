@@ -5,7 +5,7 @@ import org.hibernate.loader.ast.spi.Loadable;
 import java.time.LocalDate;
 
 public class ParametrosComunicacaoDTO {
-    private String numeroProcesso;
+    private String texto;
     private String siglaTribunal;
     private LocalDate dataDisponibilizacaoInicio;
     private LocalDate dataDisponibilizacaoFim;
@@ -13,11 +13,12 @@ public class ParametrosComunicacaoDTO {
     private Integer pagina;
     private Integer itensPorPagina;
 
-    public void setNumeroProcesso(String numeroProcesso){
-        this.numeroProcesso = numeroProcesso;
+
+    public void setTexto(String texto){
+        this.texto = texto;
     }
-    public String getNumeroProcesso(){
-        return numeroProcesso;
+    public String getTexto(){
+        return texto;
     }
 
     public void setSiglaTribunal(String siglaTribunal){

@@ -17,18 +17,24 @@ public class Processo {
     private String posicaoCliente;
     @Column(name="tribunal")
     private String tribunal;
-    @Column(name="orgao_julgador")
-    private String orgaoJulgador;
+
+    @Embedded
+    private OrgaoJulgador orgaoJulgador;
+    //Nome Orgao julgador
+
     @Column(name="grau")
     private String grau;
     @Column(name="comarca")
     private String comarca;
     @Column(name="uf")
     private String uf;
-    @Column(name="classe_processual")
-    private String classeProcessual;
-    @Column(name="assunto")
-    private String assunto;
+
+    @Embedded
+    private ClasseProcessual classeProcessual;
+
+    @Embedded
+    private Assunto assunto;
+
     @Column(name="area_atuacao")
     private String areaAtuacao;
     @Column(name="status")
@@ -37,9 +43,11 @@ public class Processo {
     private BigDecimal valorCausa;
     @Column(name="nome_magistrado")
     private String nomeMagistrado;
+    //Analisar o campo de data para definir o recorte de inicio e fim
     @Column(name="data_distribuicao")
-    private LocalDate dataDistribuicao;
-    //Atributo de Grau
+    private LocalDate dataInicio;
+    @Column(name="data_fim")
+    private LocalDate dataFim;
 
     public Long getId(){
         return id;
@@ -73,10 +81,10 @@ public class Processo {
         return tribunal;
     }
 
-    public void setOrgaoJulgador(String orgaoJulgador){
+    public void setOrgaoJulgador(OrgaoJulgador orgaoJulgador){
         this.orgaoJulgador = orgaoJulgador;
     }
-    public String getOrgaoJulgador(){
+    public OrgaoJulgador getOrgaoJulgador(){
         return orgaoJulgador;
     }
 
@@ -102,17 +110,17 @@ public class Processo {
         return uf;
     }
 
-    public void setClasseProcessual(String classeProcessual){
+    public void setClasseProcessual(ClasseProcessual classeProcessual) {
         this.classeProcessual = classeProcessual;
     }
-    public String getClasseProcessual(){
+    public ClasseProcessual getClasseProcessual() {
         return classeProcessual;
     }
 
-    public void setAssunto(String assunto){
+    public void setAssunto(Assunto assunto){
         this.assunto = assunto;
     }
-    public String getAssunto(){
+    public Assunto getAssunto(){
         return assunto;
     }
 
@@ -144,10 +152,17 @@ public class Processo {
         return nomeMagistrado;
     }
 
-    public void setDataDistribuicao(LocalDate dataDistribuicao){
-        this.dataDistribuicao = dataDistribuicao;
+    public void setDataInicio(LocalDate dataInicio){
+        this.dataInicio = dataInicio;
     }
-    public LocalDate getDataDistribuicao(){
-        return dataDistribuicao;
+    public LocalDate getDataInicio(){
+        return dataInicio;
+    }
+
+    public void setDataFim(LocalDate dataFim){
+        this.dataFim = dataFim;
+    }
+    public LocalDate getDataFim(){
+        return dataFim;
     }
 }

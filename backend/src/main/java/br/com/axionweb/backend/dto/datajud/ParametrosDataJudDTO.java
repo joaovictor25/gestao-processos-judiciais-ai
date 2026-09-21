@@ -1,13 +1,17 @@
 package br.com.axionweb.backend.dto.datajud;
 
+import br.com.axionweb.backend.model.Assunto;
+import br.com.axionweb.backend.model.ClasseProcessual;
+import br.com.axionweb.backend.model.OrgaoJulgador;
+
 import java.time.LocalDate;
 
 public class ParametrosDataJudDTO {
     //Similaridade
     private String tribunal;
-    private String classeProcessual;
-    private String assunto;
-    private String orgaoJulgador;
+    private ClasseProcessual classeProcessual;
+    private Assunto assunto;
+    private OrgaoJulgador orgaoJulgador;
     private String grau;
     private String comarca; //Estudar se esse atributo esta sendo utilizado
     private String uf; //Estudar se esse atributo esta sendo utilizado
@@ -30,24 +34,24 @@ public class ParametrosDataJudDTO {
         return tribunal;
     }
 
-    public void setClasseProcessual(String classeProcessual){
+    public void setClasseProcessual(ClasseProcessual classeProcessual){
         this.classeProcessual = classeProcessual;
     }
-    public String getClasseProcessual(){
+    public ClasseProcessual getClasseProcessual(){
         return classeProcessual;
     }
 
-    public void setAssunto(String assunto){
+    public void setAssunto(Assunto assunto){
         this.assunto = assunto;
     }
-    public String getAssunto(){
+    public Assunto getAssunto(){
         return assunto;
     }
 
-    public void setOrgaoJulgador(String orgaoJulgador){
+    public void setOrgaoJulgador(OrgaoJulgador orgaoJulgador){
         this.orgaoJulgador = orgaoJulgador;
     }
-    public String getOrgaoJulgador(){
+    public OrgaoJulgador getOrgaoJulgador(){
         return orgaoJulgador;
     }
 

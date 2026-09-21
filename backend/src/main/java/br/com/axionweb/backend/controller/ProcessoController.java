@@ -1,5 +1,6 @@
 package br.com.axionweb.backend.controller;
 
+import br.com.axionweb.backend.dto.comunicacao.ComunicacaoResponseDTO;
 import br.com.axionweb.backend.dto.datajud.DadosDataJudDTO;
 import br.com.axionweb.backend.model.Processo;
 import br.com.axionweb.backend.service.ProcessoService;
@@ -41,7 +42,7 @@ public class ProcessoController {
     }
 
     @GetMapping("/solicitar-analise/{id}")
-    public List<DadosDataJudDTO> solicitarAnalise(@PathVariable Long id){
+    public ComunicacaoResponseDTO solicitarAnalise(@PathVariable Long id){
         return processoService.analisar(id);
     }
 }
