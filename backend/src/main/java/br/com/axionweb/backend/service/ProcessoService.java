@@ -1,16 +1,12 @@
 package br.com.axionweb.backend.service;
 
-import br.com.axionweb.backend.dto.comunicacao.ComunicacaoResponseDTO;
-import br.com.axionweb.backend.dto.comunicacao.ParametrosComunicacaoDTO;
-import br.com.axionweb.backend.dto.datajud.DadosDataJudDTO;
+import br.com.axionweb.backend.dto.comunicacao.DadosComunicacaoDTO;
+
 import br.com.axionweb.backend.model.Processo;
 import br.com.axionweb.backend.repository.ProcessoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -73,7 +69,7 @@ public class ProcessoService {
 
 
 
-    public ComunicacaoResponseDTO analisar(Long id){
+    public List<DadosComunicacaoDTO> analisar(Long id){
         return analise.solicitarAnalise(id);
     }
 }
