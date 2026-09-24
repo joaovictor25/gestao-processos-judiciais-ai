@@ -41,8 +41,8 @@ public class ComunicacaoService {
         );
 
         parametro.setMeio("D");
-        parametro.setPagina(2);
-        parametro.setItensPorPagina(100);
+        parametro.setPagina(1);
+        parametro.setItensPorPagina(200);
 
         return parametro;
     }

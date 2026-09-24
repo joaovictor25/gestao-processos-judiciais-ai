@@ -2,6 +2,7 @@ package br.com.axionweb.backend.service;
 
 import br.com.axionweb.backend.dto.comunicacao.DadosComunicacaoDTO;
 
+import br.com.axionweb.backend.dto.datajud.DadosDataJudDTO;
 import br.com.axionweb.backend.model.Processo;
 import br.com.axionweb.backend.repository.ProcessoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +70,7 @@ public class ProcessoService {
 
 
 
-    public List<DadosComunicacaoDTO> analisar(Long id){
+    public List<DadosDataJudDTO> analisar(Long id){
         return analise.solicitarAnalise(id);
     }
 }

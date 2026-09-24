@@ -22,7 +22,7 @@ public class AnaliseService {
     @Autowired
     DataJudService dataJudService;
 
-    public List<DadosComunicacaoDTO> solicitarAnalise(Long id){
+    public List<DadosDataJudDTO> solicitarAnalise(Long id){
         Processo processo = repository.findById(id).orElseThrow(() -> new RuntimeException("Processo não encontrado"));
 
 
@@ -36,14 +36,15 @@ public class AnaliseService {
         List<DadosComunicacaoDTO> dadosComunicacaoDTO = comunicacaoService.consumirApiComunicacao(parametrosComunicacao);
 
 
-
         //Contexto
+
+
 
 
         //LLM
 
 
 
-        return dadosComunicacaoDTO;
+        return dadosDataJudDTO;
     }
 }

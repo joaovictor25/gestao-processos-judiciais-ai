@@ -65,7 +65,7 @@ public class DataJudService {
                 LocalDate.now()
         );
 
-        parametro.setQuantidadeResultado(100);
+        parametro.setQuantidadeResultado(1000);
 
         return parametro;
     }
