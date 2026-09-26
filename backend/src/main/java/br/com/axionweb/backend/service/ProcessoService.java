@@ -1,9 +1,8 @@
 package br.com.axionweb.backend.service;
 
-import br.com.axionweb.backend.dto.comunicacao.DadosComunicacaoDTO;
-
-import br.com.axionweb.backend.dto.datajud.DadosDataJudDTO;
-import br.com.axionweb.backend.model.Processo;
+import br.com.axionweb.backend.dto.datajud.EstatisticasProcessuaisDTO;
+import br.com.axionweb.backend.model.datajud.DataJud;
+import br.com.axionweb.backend.model.processo.Processo;
 import br.com.axionweb.backend.repository.ProcessoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -66,11 +65,15 @@ public class ProcessoService {
     }
 
 
+    //Salvar estatistica DataJud
 
 
 
-
-    public List<DadosDataJudDTO> analisar(Long id){
-        return analise.solicitarAnalise(id);
-    }
+    //Eliminar esse metodo e Usar io Metodo de AnaliseService
+//    public DataJud analisar(Long id){
+//        DataJud newdata = analise.solicitarAnalise(id);
+//
+//        return repository.saveAndFlush(newdata);
+//
+//    }
 }

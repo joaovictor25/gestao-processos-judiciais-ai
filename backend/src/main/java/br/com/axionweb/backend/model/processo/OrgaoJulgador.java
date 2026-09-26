@@ -1,4 +1,4 @@
-package br.com.axionweb.backend.model;
+package br.com.axionweb.backend.model.processo;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

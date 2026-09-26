@@ -1,8 +1,8 @@
 package br.com.axionweb.backend.dto.datajud;
 
-import br.com.axionweb.backend.model.Assunto;
-import br.com.axionweb.backend.model.ClasseProcessual;
-import br.com.axionweb.backend.model.OrgaoJulgador;
+import br.com.axionweb.backend.model.processo.Assunto;
+import br.com.axionweb.backend.model.processo.ClasseProcessual;
+import br.com.axionweb.backend.model.processo.OrgaoJulgador;
 
 import java.time.LocalDate;
 

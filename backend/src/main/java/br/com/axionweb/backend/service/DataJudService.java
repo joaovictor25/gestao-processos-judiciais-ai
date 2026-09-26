@@ -6,12 +6,11 @@ package br.com.axionweb.backend.service;
 import br.com.axionweb.backend.dto.datajud.DadosDataJudDTO;
 import br.com.axionweb.backend.dto.datajud.ParametrosDataJudDTO;
 import br.com.axionweb.backend.dto.datajud.RespostaDataJudDTO;
-import br.com.axionweb.backend.model.Processo;
+import br.com.axionweb.backend.model.processo.Processo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.util.UriBuilder;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -65,7 +64,7 @@ public class DataJudService {
                 LocalDate.now()
         );
 
-        parametro.setQuantidadeResultado(1000);
+        parametro.setQuantidadeResultado(400);
 
         return parametro;
     }

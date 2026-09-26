@@ -1,5 +1,7 @@
 package br.com.axionweb.backend.dto.datajud;
 
+import br.com.axionweb.backend.model.datajud.TempoEstatistica;
+
 public class EstatisticasProcessuaisDTO {
 
     private Integer quantidadeProcessos;

@@ -3,7 +3,7 @@ package br.com.axionweb.backend.service;
 import br.com.axionweb.backend.dto.comunicacao.ComunicacaoResponseDTO;
 import br.com.axionweb.backend.dto.comunicacao.DadosComunicacaoDTO;
 import br.com.axionweb.backend.dto.comunicacao.ParametrosComunicacaoDTO;
-import br.com.axionweb.backend.model.Processo;
+import br.com.axionweb.backend.model.processo.Processo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;

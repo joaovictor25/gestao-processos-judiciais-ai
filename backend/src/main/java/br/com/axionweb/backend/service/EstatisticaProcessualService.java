@@ -4,6 +4,7 @@ import br.com.axionweb.backend.dto.datajud.DadosDataJudDTO;
 import br.com.axionweb.backend.dto.datajud.EstatisticasProcessuaisDTO;
 import br.com.axionweb.backend.dto.datajud.MovimentoDataJudDTO;
 import br.com.axionweb.backend.dto.datajud.TempoEstatisticaDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -60,6 +61,8 @@ public class EstatisticaProcessualService {
 
     public EstatisticasProcessuaisDTO calcular(
             List<DadosDataJudDTO> processos) {
+
+
 
         EstatisticasProcessuaisDTO resultado =
                 new EstatisticasProcessuaisDTO();

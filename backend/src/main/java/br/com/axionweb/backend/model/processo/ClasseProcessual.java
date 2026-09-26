@@ -1,13 +1,13 @@
-package br.com.axionweb.backend.model;
+package br.com.axionweb.backend.model.processo;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
-public class Assunto {
-    @Column(name="assunto_nome")
+public class ClasseProcessual {
+    @Column(name="classe_processual_nome")
     private String nome;
-    @Column(name="assunto_codigo")
+    @Column(name="classe_processual_codigo")
     private String codigo;
 
     public void setNome(String nome){

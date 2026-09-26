@@ -1,9 +1,7 @@
 package br.com.axionweb.backend.controller;
 import br.com.axionweb.backend.dto.datajud.EstatisticasProcessuaisDTO;
-import br.com.axionweb.backend.service.EstatisticaProcessualService;
-import br.com.axionweb.backend.dto.comunicacao.DadosComunicacaoDTO;
-import br.com.axionweb.backend.dto.datajud.DadosDataJudDTO;
-import br.com.axionweb.backend.model.Processo;
+import br.com.axionweb.backend.model.datajud.DataJud;
+import br.com.axionweb.backend.model.processo.Processo;
 import br.com.axionweb.backend.service.ProcessoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -42,9 +40,9 @@ public class ProcessoController {
         return processoService.buscarPorNumProcesso(numeroProcesso);
     }
 
-    @GetMapping("/solicitar-analise/{id}")
-    public List<DadosDataJudDTO> solicitarAnalise(@PathVariable Long id){
-        return processoService.analisar(id);
-    }
+//    @GetMapping("/solicitar-analise/{id}")
+//    public DataJud solicitarAnalise(@PathVariable Long id){
+//        return processoService.analisar(id);
+//    }
 
 }
