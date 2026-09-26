@@ -1,16 +1,23 @@
 package br.com.axionweb.backend.service;
 
+import br.com.axionweb.backend.dto.analise.AnaliseResponseDTO;
+import br.com.axionweb.backend.dto.comunicacao.ComunicacaoSalvaDTO;
+import br.com.axionweb.backend.dto.datajud.DataJudResponseDTO;
+import br.com.axionweb.backend.dto.comunicacao.DadosComunicacaoDTO;
+import br.com.axionweb.backend.dto.comunicacao.ParametrosComunicacaoDTO;
 import br.com.axionweb.backend.dto.datajud.DadosDataJudDTO;
 import br.com.axionweb.backend.dto.datajud.EstatisticasProcessuaisDTO;
 import br.com.axionweb.backend.dto.datajud.ParametrosDataJudDTO;
 import br.com.axionweb.backend.dto.datajud.TempoEstatisticaDTO;
+import br.com.axionweb.backend.model.comunicacao.Comunicacao;
 import br.com.axionweb.backend.model.datajud.DataJud;
 import br.com.axionweb.backend.model.datajud.TempoEstatistica;
 import br.com.axionweb.backend.model.processo.Processo;
+import br.com.axionweb.backend.repository.ComunicacaoRepository;
 import br.com.axionweb.backend.repository.DataJudRepository;
-import br.com.axionweb.backend.repository.ProcessoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,31 +27,25 @@ public class AnaliseService {
     @Autowired
     DataJudRepository dataJudRepository;
 
-    private final ProcessoRepository processoRepository;
-    private final ComunicacaoService comunicacaoService;
-    private final DataJudService dataJudService;
-    private final EstatisticaProcessualService estatisticaProcessualService;
+    @Autowired
+    ComunicacaoRepository comunicacaoRepository;
 
-    public AnaliseService(
-            ProcessoRepository processoRepository,
-            ComunicacaoService comunicacaoService,
-            DataJudService dataJudService,
-            EstatisticaProcessualService estatisticaProcessualService) {
+    @Autowired
+    ProcessoService processoService;
 
-        this.processoRepository = processoRepository;
-        this.comunicacaoService = comunicacaoService;
-        this.dataJudService = dataJudService;
-        this.estatisticaProcessualService = estatisticaProcessualService;
-    }
+    @Autowired
+    ComunicacaoService comunicacaoService;
 
+    @Autowired
+    DataJudService dataJudService;
 
+    @Autowired
+    EstatisticaProcessualService estatisticaProcessualService;
+
+    @Transactional
     public String analisar(Long id) {
 
-        Processo processo = processoRepository
-                .findById(id)
-                .orElseThrow(
-                        () -> new RuntimeException("Processo não encontrado")
-                );
+        Processo processo = processoService.buscarPorId(id);
 
 
         // 1. Monta parâmetros DataJud
@@ -64,6 +65,7 @@ public class AnaliseService {
 
         // 4. Converte DTO -> entidade
         DataJud entidadeDataJud = new DataJud();
+        entidadeDataJud.setProcesso(processo);
 
         entidadeDataJud.setQuantidadeProcessos(
                 estatisticas.getQuantidadeProcessos()
@@ -98,12 +100,43 @@ public class AnaliseService {
                         estatisticas.getTempoAtePrimeiroJulgamento()
                 )
         );
-        dataJudRepository.saveAndFlush(entidadeDataJud);
-
         // Comunicação CNJ
-//        ParametrosComunicacaoDTO parametrosComunicacao = comunicacaoService.montarParametroComunicacao(processo);
-//        List<DadosComunicacaoDTO> dadosComunicacao = comunicacaoService.consumirApiComunicacao(parametrosComunicacao);
+        ParametrosComunicacaoDTO parametrosComunicacao = comunicacaoService.montarParametroComunicacao(processo);
+        List<DadosComunicacaoDTO> dadosComunicacaoDTO = comunicacaoService.consumirApiComunicacao(parametrosComunicacao);
 
+        System.out.println("Quantidade de comunicações retornadas: " + parametrosComunicacao.getSiglaTribunal());
+        List<Comunicacao> comunicacoes = dadosComunicacaoDTO.stream()
+                .map(dto -> {
+
+                    Comunicacao comunicacao = new Comunicacao();
+                    comunicacao.setProcesso(processo);
+
+                    comunicacao.setCodigoClasse(dto.getCodigoClasse());
+                    comunicacao.setDataDisponibilizacao(dto.getData_disponibilizacao());
+                    comunicacao.setDataDisponibilizacaoFormatada(dto.getDatadisponibilizacao());
+                    comunicacao.setIdOrgao(dto.getIdOrgao());
+                    comunicacao.setMeio(dto.getMeio());
+                    comunicacao.setMeioCompleto(dto.getMeiocompleto());
+                    comunicacao.setSiglaTribunal(dto.getSiglaTribunal());
+                    comunicacao.setStatus(dto.getStatus());
+                    comunicacao.setTexto(dto.getTexto());
+                    comunicacao.setTipoComunicacao(dto.getTipoComunicacao());
+                    comunicacao.setTipoDocumento(dto.getTipoDocumento());
+
+                    return comunicacao;
+                })
+                .toList();
+        System.out.println("Quantidade convertida para entidade: " + comunicacoes.size());
+
+        // Serializa a substituição por processo somente depois de consultar as APIs.
+        processoService.bloquearParaAtualizarAnalise(processo.getId());
+        comunicacaoRepository.deleteByProcessoId(processo.getId());
+        dataJudRepository.deleteByProcessoId(processo.getId());
+        dataJudRepository.flush();
+
+        // Exclusão e gravação pertencem à mesma transação; falhas preservam o resultado anterior.
+        dataJudRepository.save(entidadeDataJud);
+        comunicacaoRepository.saveAllAndFlush(comunicacoes);
 
         // Contexto
 
@@ -112,6 +145,35 @@ public class AnaliseService {
 
 
         return "200";
+    }
+
+    @Transactional(readOnly = true)
+    public AnaliseResponseDTO consultar(Long processoId) {
+        Processo processo = processoService.buscarPorId(processoId);
+        return new AnaliseResponseDTO(processo.getId(),
+                carregarEstatisticas(processo.getId()), carregarComunicacoes(processo.getId()));
+    }
+
+    @Transactional(readOnly = true)
+    public List<DataJudResponseDTO> consultarEstatisticas(Long processoId) {
+        Processo processo = processoService.buscarPorId(processoId);
+        return carregarEstatisticas(processo.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ComunicacaoSalvaDTO> consultarComunicacoes(Long processoId) {
+        Processo processo = processoService.buscarPorId(processoId);
+        return carregarComunicacoes(processo.getId());
+    }
+
+    private List<DataJudResponseDTO> carregarEstatisticas(Long processoId) {
+        return dataJudRepository.findByProcessoIdOrderByIdAsc(processoId).stream()
+                .map(DataJudResponseDTO::de).toList();
+    }
+
+    private List<ComunicacaoSalvaDTO> carregarComunicacoes(Long processoId) {
+        return comunicacaoRepository.findByProcessoIdOrderByIdAsc(processoId).stream()
+                .map(ComunicacaoSalvaDTO::de).toList();
     }
 
     private TempoEstatistica converterTempoEstatistica(

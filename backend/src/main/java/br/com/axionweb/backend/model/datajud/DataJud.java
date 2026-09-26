@@ -1,13 +1,17 @@
 package br.com.axionweb.backend.model.datajud;
 
+import br.com.axionweb.backend.model.processo.Processo;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -17,6 +21,10 @@ public class DataJud {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "processo_id", nullable = false)
+    private Processo processo;
 
     @Column(name = "quantidade_processos")
     private Integer quantidadeProcessos;
@@ -201,6 +209,14 @@ public class DataJud {
 
     public Long getId() {
         return id;
+    }
+
+    public Processo getProcesso() {
+        return processo;
+    }
+
+    public void setProcesso(Processo processo) {
+        this.processo = processo;
     }
 
     public Integer getQuantidadeProcessos() {

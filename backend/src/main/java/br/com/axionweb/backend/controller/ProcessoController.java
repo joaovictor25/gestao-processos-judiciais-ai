@@ -1,7 +1,7 @@
 package br.com.axionweb.backend.controller;
-import br.com.axionweb.backend.dto.datajud.EstatisticasProcessuaisDTO;
-import br.com.axionweb.backend.model.datajud.DataJud;
-import br.com.axionweb.backend.model.processo.Processo;
+
+import br.com.axionweb.backend.dto.processo.ProcessoRequestDTO;
+import br.com.axionweb.backend.dto.processo.ProcessoResponseDTO;
 import br.com.axionweb.backend.service.ProcessoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -11,38 +11,36 @@ import java.util.List;
 @RequestMapping("/api/processo")
 @RestController
 public class ProcessoController {
-
     @Autowired
     ProcessoService processoService;
 
-    @PostMapping("/cadastar")
-    public Processo cadastrar(@RequestBody Processo processo){
-        return processoService.cadastrar(processo);
+    @PostMapping({"/cadastrar"})
+    public ProcessoResponseDTO cadastrar(@RequestBody ProcessoRequestDTO dto) {
+        return ProcessoResponseDTO.de(processoService.cadastrar(dto));
     }
 
     @PutMapping("/atualizar/{id}")
-    public Processo atualizar(@PathVariable Long id, @RequestBody Processo processo){
-        return processoService.atualizar(id, processo);
+    public ProcessoResponseDTO atualizar(@PathVariable Long id, @RequestBody ProcessoRequestDTO dto) {
+        return ProcessoResponseDTO.de(processoService.atualizar(id, dto));
     }
 
     @DeleteMapping("/deletar/{id}")
-    public void deletar(@PathVariable Long id){
+    public void deletar(@PathVariable Long id) {
         processoService.excluir(id);
     }
 
     @GetMapping("/listar-usuario")
-    public List<Processo> listarPorUsuario(){
-        return processoService.listarPorUsuario();
+    public List<ProcessoResponseDTO> listarPorUsuario() {
+        return processoService.listarPorUsuario().stream().map(ProcessoResponseDTO::de).toList();
     }
 
     @GetMapping("/buscar-num-processo")
-    public Processo buscarPorNumProcesso(@RequestParam String numeroProcesso){
-        return processoService.buscarPorNumProcesso(numeroProcesso);
+    public ProcessoResponseDTO buscarPorNumProcesso(@RequestParam String numeroProcesso) {
+        return ProcessoResponseDTO.de(processoService.buscarPorNumProcesso(numeroProcesso));
     }
 
-//    @GetMapping("/solicitar-analise/{id}")
-//    public DataJud solicitarAnalise(@PathVariable Long id){
-//        return processoService.analisar(id);
-//    }
-
+    @GetMapping("/{id}")
+    public ProcessoResponseDTO buscarPorId(@PathVariable Long id) {
+        return ProcessoResponseDTO.de(processoService.buscarPorId(id));
+    }
 }

@@ -1,4 +1,6 @@
 package br.com.axionweb.backend.model.processo;
+import br.com.axionweb.backend.model.usuario.Usuario;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -9,6 +11,11 @@ public class Processo {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
     @Column(name="numero_processo")
     private String numeroProcesso;
     @Column(name="cliente_vinculado")
@@ -51,6 +58,14 @@ public class Processo {
 
     public Long getId(){
         return id;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
     }
 
     public void setNumeroProcesso(String numeroProcesso){

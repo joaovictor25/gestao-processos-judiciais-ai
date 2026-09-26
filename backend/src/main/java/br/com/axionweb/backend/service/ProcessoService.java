@@ -1,79 +1,75 @@
 package br.com.axionweb.backend.service;
 
-import br.com.axionweb.backend.dto.datajud.EstatisticasProcessuaisDTO;
-import br.com.axionweb.backend.model.datajud.DataJud;
+import br.com.axionweb.backend.dto.processo.ProcessoRequestDTO;
+import br.com.axionweb.backend.exception.ProcessoNaoEncontradoException;
 import br.com.axionweb.backend.model.processo.Processo;
+import br.com.axionweb.backend.repository.ComunicacaoRepository;
+import br.com.axionweb.backend.repository.DataJudRepository;
 import br.com.axionweb.backend.repository.ProcessoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 public class ProcessoService {
-
     @Autowired
     ProcessoRepository repository;
 
-
+    @Autowired
+    DataJudRepository dataJudRepository;
 
     @Autowired
-    AnaliseService analise;
+    ComunicacaoRepository comunicacaoRepository;
 
-    //Cadastro dos processos
-    public Processo cadastrar(Processo processo){
+    @Autowired
+    UsuarioAutenticadoService usuarioAutenticadoService;
+
+    @Transactional
+    public Processo cadastrar(ProcessoRequestDTO dto) {
+        Processo processo = new Processo();
+        dto.aplicarEm(processo);
+        processo.setUsuario(usuarioAutenticadoService.getUsuarioAutenticado());
         return repository.save(processo);
     }
 
-    //Alteração das informações do processo que estão salvas no banco
-    public Processo atualizar(Long id, Processo processo){
-
-        Processo processoNovo = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Processo não encontrado"));
-
-        processoNovo.setNumeroProcesso(processo.getNumeroProcesso());
-        processoNovo.setClienteVinculado(processo.getClienteVinculado());
-        processoNovo.setPosicaoCliente(processo.getPosicaoCliente());
-        processoNovo.setTribunal(processo.getTribunal());
-        processoNovo.setOrgaoJulgador(processo.getOrgaoJulgador());
-        processoNovo.setComarca(processo.getComarca());
-        processoNovo.setUf(processo.getUf());
-        processoNovo.setClasseProcessual(processo.getClasseProcessual());
-        processoNovo.setAssunto(processo.getAssunto());
-        processoNovo.setAreaAtuacao(processo.getAreaAtuacao());
-        processoNovo.setStatus(processo.getStatus());
-        processoNovo.setValorCausa(processo.getValorCausa());
-        processoNovo.setNomeMagistrado(processo.getNomeMagistrado());
-        processoNovo.setDataInicio(processo.getDataInicio());
-
-        return repository.save(processoNovo);
+    @Transactional(readOnly = true)
+    public Processo buscarPorId(Long id) {
+        return repository.findByIdAndUsuarioEmail(id, usuarioAutenticadoService.getEmailAutenticado())
+                .orElseThrow(ProcessoNaoEncontradoException::new);
     }
 
-    //Excluir processo
-    public void excluir(Long id){
-        repository.deleteById(id);
+    @Transactional
+    public Processo bloquearParaAtualizarAnalise(Long id) {
+        return repository.findWithLockByIdAndUsuarioEmail(id, usuarioAutenticadoService.getEmailAutenticado())
+                .orElseThrow(ProcessoNaoEncontradoException::new);
     }
 
-    //Listar todos os processos do usuario
-    public List<Processo> listarPorUsuario(){
-        return repository.findAll();
+    @Transactional
+    public Processo atualizar(Long id, ProcessoRequestDTO dto) {
+        Processo processo = buscarPorId(id);
+        dto.aplicarEm(processo);
+        return repository.save(processo);
     }
 
-    //Buscar processo pelo número CNJ
-    public Processo buscarPorNumProcesso(String numeroProcesso){
-        return repository.findByNumeroProcesso(numeroProcesso);
+    @Transactional
+    public void excluir(Long id) {
+        Processo processo = buscarPorId(id);
+        comunicacaoRepository.deleteByProcessoId(processo.getId());
+        dataJudRepository.deleteByProcessoId(processo.getId());
+        repository.delete(processo);
     }
 
+    @Transactional(readOnly = true)
+    public List<Processo> listarPorUsuario() {
+        return repository.findByUsuarioEmailOrderByIdAsc(usuarioAutenticadoService.getEmailAutenticado());
+    }
 
-    //Salvar estatistica DataJud
-
-
-
-    //Eliminar esse metodo e Usar io Metodo de AnaliseService
-//    public DataJud analisar(Long id){
-//        DataJud newdata = analise.solicitarAnalise(id);
-//
-//        return repository.saveAndFlush(newdata);
-//
-//    }
+    @Transactional(readOnly = true)
+    public Processo buscarPorNumProcesso(String numeroProcesso) {
+        return repository.findFirstByNumeroProcessoAndUsuarioEmailOrderByIdAsc(
+                        numeroProcesso, usuarioAutenticadoService.getEmailAutenticado())
+                .orElseThrow(ProcessoNaoEncontradoException::new);
+    }
 }

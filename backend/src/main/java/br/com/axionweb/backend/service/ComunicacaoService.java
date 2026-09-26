@@ -56,10 +56,10 @@ public class ComunicacaoService {
                 .uri(
                         uriBuilder -> uriBuilder
                                 .path("/api/v1/comunicacao")
-                                .queryParam(
-                                        "texto",
-                                        parametro.getTexto()
-                                )
+//                                .queryParam(
+//                                        "texto",
+//                                        parametro.getTexto()
+//                                )
                                 .queryParam(
                                         "siglaTribunal",
                                         parametro.getSiglaTribunal()
