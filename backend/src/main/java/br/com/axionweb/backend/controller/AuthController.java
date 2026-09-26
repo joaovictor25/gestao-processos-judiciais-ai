@@ -5,6 +5,7 @@ import br.com.axionweb.backend.service.AuthService;
 import br.com.axionweb.backend.service.UsuarioAutenticadoService;
 import br.com.axionweb.backend.service.UsuarioService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +32,12 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponseDTO login(@Valid @RequestBody LoginRequestDTO dto) {
         return authService.login(dto);
+    }
+
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        authService.logout(authorization);
     }
 
     @GetMapping("/me")

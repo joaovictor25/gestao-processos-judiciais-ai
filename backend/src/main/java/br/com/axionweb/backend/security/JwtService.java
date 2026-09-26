@@ -1,5 +1,7 @@
 package br.com.axionweb.backend.security;
 
+import br.com.axionweb.backend.model.usuario.TokenRevogado;
+import br.com.axionweb.backend.repository.TokenRevogadoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,13 +11,19 @@ import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.HexFormat;
+import java.util.UUID;
 
 @Service
 public class JwtService {
@@ -24,11 +32,12 @@ public class JwtService {
     private final JwtDecoder decoder;
     private final String issuer;
     private final Duration validade;
+    private final TokenRevogadoRepository tokensRevogados;
 
     public JwtService(@Value("${app.jwt.secret:}") String segredo,
                       @Value("${app.jwt.issuer:gestao-processos}") String issuer,
                       @Value("${app.jwt.validade:PT1H}") Duration validade,
-                      Environment environment) {
+                      Environment environment, TokenRevogadoRepository tokensRevogados) {
         if (validade.isZero() || validade.isNegative() || issuer.isBlank()) {
             throw new IllegalArgumentException("Configuração de validade/emissor JWT inválida");
         }
@@ -61,12 +70,14 @@ public class JwtService {
         this.decoder = jwtDecoder;
         this.issuer = issuer;
         this.validade = validade;
+        this.tokensRevogados = tokensRevogados;
     }
 
     public String gerarToken(String email) {
         Instant agora = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(issuer).subject(email)
+                .id(UUID.randomUUID().toString())
                 .issuedAt(agora).expiresAt(agora.plus(validade))
                 .build();
         return encoder.encode(JwtEncoderParameters.from(
@@ -74,6 +85,29 @@ public class JwtService {
     }
 
     public Jwt validarToken(String token) {
-        return decoder.decode(token);
+        Jwt jwt = decoder.decode(token);
+        if (tokensRevogados.existsByTokenHash(hashToken(token))) {
+            throw new BadJwtException("Token revogado");
+        }
+        return jwt;
+    }
+
+    @Transactional
+    public void revogarToken(String token) {
+        Jwt jwt = decoder.decode(token);
+        tokensRevogados.removerExpirados(Instant.now());
+        tokensRevogados.saveAndFlush(new TokenRevogado(hashToken(token), jwt.getExpiresAt()));
+    }
+
+    private String hashToken(String token) {
+        try {
+            // A assinatura pode ter representações Base64 equivalentes. O conteúdo assinado é estável.
+            String conteudoAssinado = token.substring(0, token.lastIndexOf('.'));
+            byte[] hash = MessageDigest.getInstance("SHA-256")
+                    .digest(conteudoAssinado.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 indisponível", exception);
+        }
     }
 }

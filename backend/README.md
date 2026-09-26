@@ -42,7 +42,7 @@ Não é necessário criar administrador nem configurar `DEV_ADMIN_EMAIL` ou `DEV
 
 Como o H2 atual é em memória, reiniciar o backend apaga os registros anteriores. Fora do perfil `dev`, o console continua desabilitado.
 
-## Cadastro e login
+## Cadastro, login e logout
 
 ```http
 POST /api/auth/cadastro
@@ -73,9 +73,22 @@ Retorna `200`:
 }
 ```
 
-As demais rotas da API exigem `Authorization: Bearer <token>`. O JWT usa assinatura HS256 e contém apenas identificação e datas, sem senha. A validação verifica assinatura, algoritmo, emissor, expiração e subject, e carrega o usuário do banco em cada requisição. Não é criada sessão de servidor.
+As demais rotas da API exigem `Authorization: Bearer <token>`. O JWT usa assinatura HS256 e contém apenas identificação e datas, sem senha. Cada login gera um identificador aleatório (`jti`), garantindo tokens diferentes mesmo para logins do mesmo usuário no mesmo segundo. A validação verifica assinatura, algoritmo, emissor, expiração, subject e revogação, e carrega o usuário do banco em cada requisição. Não é criada sessão de servidor.
 
-`GET /api/auth/me` retorna os dados públicos da conta autenticada. Um cliente faz logout descartando seu token; o token já emitido continua válido até expirar. Não há refresh token nem lista de revogação nesta implementação.
+`GET /api/auth/me` retorna os dados públicos da conta autenticada. Não há refresh token nesta implementação.
+
+Para sair, envie o token do login atual, sem corpo na requisição:
+
+```http
+POST /api/auth/logout
+Authorization: Bearer <token>
+```
+
+Retorna `204 No Content` e revoga esse token. Novas requisições com ele retornam `401`, inclusive outra tentativa de logout. Tokens ausentes, inválidos ou expirados também retornam `401`. Outros logins do usuário e de outras contas continuam funcionando; um novo login gera um novo token válido. O logout preserva usuários, processos e resultados salvos. Requisições que já passaram pela autenticação antes da revogação podem concluir normalmente.
+
+O futuro frontend deve chamar esse endpoint ao clicar em **Sair**, remover sua cópia do token após o sucesso e redirecionar para o login. Caso receba `401`, também pode limpar o token local, pois ele não permite mais acesso.
+
+A revogação fica na tabela `token_revogado`, com o hash SHA-256 do conteúdo assinado e sua expiração; o JWT completo não é armazenado. Tokens emitidos antes da inclusão de `jti` também podem ser revogados. Registros expirados são removidos durante os próximos logouts. A revogação sobrevive ao reinício quando o banco é persistente; no H2 em memória atual, ela é apagada junto com os demais dados.
 
 ## Processos e resultados
 
@@ -113,7 +126,7 @@ Os erros possuem `status`, `mensagem` e `campos` (erros de validação). Senhas,
 | Status | Situação |
 | --- | --- |
 | 400 | DTO/JSON/parâmetros inválidos |
-| 401 | Credenciais incorretas, token ausente, inválido ou expirado |
+| 401 | Credenciais incorretas, token ausente, inválido, expirado ou revogado |
 | 403 | Permissão insuficiente |
 | 404 | Processo inexistente ou pertencente a outra conta |
 | 409 | E-mail já cadastrado ou conflito de integridade |
@@ -125,12 +138,14 @@ No ambiente encontrado, o H2 é exclusivamente em memória. A aplicação recria
 
 Se outro ambiente sobrescrever a configuração para utilizar um banco persistente, faça backup e migre antes de iniciar esta versão: crie `usuarios`, adicione `processos.usuario_id` inicialmente anulável, cadastre os usuários com hashes válidos, atribua cada processo a seu proprietário confirmado, confira que não há vínculos nulos/inválidos e então aplique a FK e `NOT NULL`. Preserve os IDs dos processos para manter os vínculos existentes de estatísticas e comunicações. Não dependa de `ddl-auto=update` para inferir proprietários de dados antigos.
 
+Para o logout, o esquema persistente também precisa da entidade `TokenRevogado`: tabela `token_revogado` com ID gerado, `token_hash` obrigatório de 64 caracteres e `expira_em` obrigatório, com os índices definidos na entidade. As revogações precisam ser preservadas enquanto os tokens correspondentes ainda estiverem válidos.
+
 ## Verificação
 
 ```powershell
 .\mvnw.cmd -B -ntp test
 ```
 
-Os testes de integração usam H2 separado e respostas simuladas somente para DataJud e Comunicação. Exercitam cadastro, hash de senha, login real, JWT, validação, isolamento entre contas, tentativas de alterar o proprietário pelo JSON, resultados e exclusão, além das transações e chaves estrangeiras. A chave do perfil `test` é exclusiva dos testes e não é distribuída nos recursos principais.
+Os testes de integração usam H2 separado e respostas simuladas somente para DataJud e Comunicação. Exercitam cadastro, hash de senha, login real, JWT, logout com bloqueio do token revogado, preservação de outros logins, novo login após sair, validação, isolamento entre contas, tentativas de alterar o proprietário pelo JSON, resultados e exclusão, além das transações e chaves estrangeiras. A chave do perfil `test` é exclusiva dos testes e não é distribuída nos recursos principais.
 
 A implementação de JWT utiliza os componentes Nimbus fornecidos pelo [Spring Security](https://docs.spring.io/spring-security/reference/servlet/oauth2/) e suas versões gerenciadas pelo Spring Boot, sem biblioteca JWT paralela.

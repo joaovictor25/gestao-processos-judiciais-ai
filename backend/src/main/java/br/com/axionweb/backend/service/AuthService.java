@@ -8,6 +8,8 @@ import br.com.axionweb.backend.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -34,5 +36,17 @@ public class AuthService {
                 .orElseThrow(() -> new BadCredentialsException("Credenciais inválidas"));
         return new LoginResponseDTO(jwtService.gerarToken(usuario.getEmail()), "Bearer",
                 usuario.getId(), usuario.getNome(), usuario.getEmail(), usuario.getRole());
+    }
+
+    public void logout(String authorization) {
+        if (authorization == null || !authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            throw new BadCredentialsException("Token inválido");
+        }
+        try {
+            jwtService.revogarToken(authorization.substring(7).strip());
+        } catch (JwtException | IllegalArgumentException exception) {
+            throw new BadCredentialsException("Token inválido");
+        }
+        SecurityContextHolder.clearContext();
     }
 }

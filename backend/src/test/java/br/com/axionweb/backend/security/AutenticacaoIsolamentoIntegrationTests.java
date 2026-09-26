@@ -6,6 +6,7 @@ import br.com.axionweb.backend.model.datajud.DataJud;
 import br.com.axionweb.backend.model.datajud.TempoEstatistica;
 import br.com.axionweb.backend.model.processo.Processo;
 import br.com.axionweb.backend.model.usuario.Role;
+import br.com.axionweb.backend.model.usuario.TokenRevogado;
 import br.com.axionweb.backend.model.usuario.Usuario;
 import br.com.axionweb.backend.repository.*;
 import br.com.axionweb.backend.service.ComunicacaoService;
@@ -67,11 +68,13 @@ class AutenticacaoIsolamentoIntegrationTests {
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private JdbcTemplate jdbcTemplate;
     @Autowired private JwtService jwtService;
+    @Autowired private TokenRevogadoRepository tokensRevogados;
     @MockitoBean private DataJudService dataJudService;
     @MockitoBean private ComunicacaoService comunicacaoService;
 
     @BeforeEach
     void prepararBanco() {
+        tokensRevogados.deleteAllInBatch();
         comunicacoes.deleteAllInBatch();
         estatisticas.deleteAllInBatch();
         processos.deleteAllInBatch();
@@ -151,6 +154,125 @@ class AutenticacaoIsolamentoIntegrationTests {
     }
 
     @Test
+    void logoutDeveRevogarTokenEBloquearLeituraEAlteracaoSemApagarDados() throws Exception {
+        Conta conta = criarConta("joao@email.com");
+        long processoId = criarProcesso(conta, "PROCESSO-LOGOUT");
+        salvarResultados(processoId, 5, "Resultado salvo");
+        Instant expiracao = jwtService.validarToken(conta.token()).getExpiresAt();
+
+        MvcResult resposta = mvc.perform(post("/api/auth/logout").header("Authorization", conta.bearer()))
+                .andExpect(status().isNoContent()).andExpect(content().string(""))
+                .andExpect(header().doesNotExist("Set-Cookie")).andReturn();
+        assertThat(resposta.getRequest().getSession(false)).isNull();
+        assertThat(tokensRevogados.findAll()).singleElement().satisfies(token -> {
+            assertThat(token.getTokenHash()).matches("[0-9a-f]{64}").isNotEqualTo(conta.token());
+            assertThat(token.getExpiraEm()).isEqualTo(expiracao);
+        });
+
+        for (String endpoint : List.of("/api/auth/me", "/api/processo/listar-usuario",
+                "/api/dados/estatisticas/" + processoId, "/api/dados/comunicacoes/" + processoId)) {
+            mvc.perform(get(endpoint).header("Authorization", conta.bearer()))
+                    .andExpect(status().isUnauthorized()).andExpect(jsonPath("$.status").value(401));
+        }
+        mvc.perform(post("/api/dados/analisar/{id}", processoId).header("Authorization", conta.bearer()))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(delete("/api/processo/deletar/{id}", processoId).header("Authorization", conta.bearer()))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/auth/logout").header("Authorization", conta.bearer()))
+                .andExpect(status().isUnauthorized());
+        assertThat(usuarios.count()).isEqualTo(1);
+        assertThat(processos.count()).isEqualTo(1);
+        assertThat(estatisticas.count()).isEqualTo(1);
+        assertThat(comunicacoes.count()).isEqualTo(1);
+        verifyNoInteractions(dataJudService, comunicacaoService);
+    }
+
+    @Test
+    void logoutDevePreservarOutrosLoginsEPermitirEntrarNovamente() throws Exception {
+        Conta joao = criarConta("joao@email.com");
+        Conta maria = criarConta("maria@email.com");
+        String outroLogin = body(mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("email", joao.email(), "senha", SENHA))))
+                .andExpect(status().isOk()).andReturn()).get("token").asText();
+        assertThat(outroLogin).isNotEqualTo(joao.token());
+        assertThat(jwtService.validarToken(outroLogin).getId()).isNotBlank()
+                .isNotEqualTo(jwtService.validarToken(joao.token()).getId());
+
+        mvc.perform(post("/api/auth/logout").header("Authorization", joao.bearer()))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + outroLogin))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(joao.id()));
+        mvc.perform(get("/api/auth/me").header("Authorization", maria.bearer()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(maria.id()));
+
+        String novoToken = body(mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("email", joao.email(), "senha", SENHA))))
+                .andExpect(status().isOk()).andReturn()).get("token").asText();
+        assertThat(novoToken).isNotEqualTo(joao.token()).isNotEqualTo(outroLogin);
+        mvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + novoToken))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/auth/me").header("Authorization", joao.bearer()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void logoutSemTokenDeveRetornar401() throws Exception {
+        mvc.perform(post("/api/auth/logout")).andExpect(status().isUnauthorized());
+        assertThat(tokensRevogados.count()).isZero();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Bearer invalido", "Bearer ", "Basic dXN1YXJpbzpzZW5oYQ=="})
+    void logoutComCredencialInvalidaDeveRetornar401(String authorization) throws Exception {
+        mvc.perform(post("/api/auth/logout").header("Authorization", authorization))
+                .andExpect(status().isUnauthorized());
+        assertThat(tokensRevogados.count()).isZero();
+    }
+
+    @Test
+    void logoutPorGetNaoDeveRevogarToken() throws Exception {
+        Conta conta = criarConta("joao@email.com");
+        mvc.perform(get("/api/auth/logout").header("Authorization", conta.bearer()))
+                .andExpect(status().isMethodNotAllowed());
+        mvc.perform(get("/api/auth/me").header("Authorization", conta.bearer()))
+                .andExpect(status().isOk());
+        assertThat(tokensRevogados.count()).isZero();
+    }
+
+    @Test
+    void logoutDeveRemoverSomenteRevogacoesExpiradas() throws Exception {
+        Conta conta = criarConta("joao@email.com");
+        tokensRevogados.saveAndFlush(new TokenRevogado("a".repeat(64), Instant.now().minusSeconds(60)));
+        tokensRevogados.saveAndFlush(new TokenRevogado("b".repeat(64), Instant.now().plusSeconds(600)));
+
+        mvc.perform(post("/api/auth/logout").header("Authorization", conta.bearer()))
+                .andExpect(status().isNoContent());
+        assertThat(tokensRevogados.existsByTokenHash("a".repeat(64))).isFalse();
+        assertThat(tokensRevogados.existsByTokenHash("b".repeat(64))).isTrue();
+        assertThat(tokensRevogados.count()).isEqualTo(2);
+    }
+
+    @Test
+    void logoutDeveRevogarTokenAnteriorSemJtiInclusiveAssinaturaComPadding() throws Exception {
+        Conta conta = criarConta("joao@email.com");
+        var encoder = NimbusJwtEncoder.withSecretKey(new SecretKeySpec(
+                Base64.getDecoder().decode(CHAVE_TESTE), "HmacSHA256")).build();
+        var claims = JwtClaimsSet.builder().issuer("gestao-processos").subject(conta.email())
+                .issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(600)).build();
+        String token = encoder.encode(JwtEncoderParameters.from(
+                JwsHeader.with(MacAlgorithm.HS256).build(), claims)).getTokenValue();
+        mvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token + "="))
+                .andExpect(status().isOk());
+
+        mvc.perform(post("/api/auth/logout").header("Authorization", "bearer " + token + " "))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token + "="))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void loginInvalidoDeveRetornar401SemDistinguirUsuarioInexistente() throws Exception {
         criarConta("joao@email.com");
         JsonNode senhaErrada = body(mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
@@ -206,6 +328,9 @@ class AutenticacaoIsolamentoIntegrationTests {
 
         mvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/auth/logout").header("Authorization", "Bearer " + token))
+                .andExpect(status().isUnauthorized());
+        assertThat(tokensRevogados.count()).isZero();
         verifyNoInteractions(dataJudService, comunicacaoService);
     }
 
