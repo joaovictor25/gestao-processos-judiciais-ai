@@ -4,6 +4,11 @@ import br.com.axionweb.backend.dto.analise.AnaliseResponseDTO;
 import br.com.axionweb.backend.dto.comunicacao.ComunicacaoSalvaDTO;
 import br.com.axionweb.backend.dto.datajud.DataJudResponseDTO;
 import br.com.axionweb.backend.service.AnaliseService;
+import br.com.axionweb.backend.service.AnaliseComunicacaoService;
+import br.com.axionweb.backend.dto.comunicacao.AnaliseComunicacaoDTO;
+import br.com.axionweb.backend.dto.comunicacao.AnaliseComunicacaoRequestDTO;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +24,14 @@ public class AnaliseController {
 
     @Autowired
     AnaliseService analiseService;
+    @Autowired
+    AnaliseComunicacaoService analiseComunicacaoService;
+
+    @PostMapping("/comunicacoes/{processoId}/analise-ia")
+    public AnaliseComunicacaoDTO analisarComunicacoes(@PathVariable Long processoId,
+                                                     @Valid @RequestBody AnaliseComunicacaoRequestDTO requisicao) {
+        return analiseComunicacaoService.analisar(processoId, requisicao);
+    }
 
     //Rota antiga
     @GetMapping("/analisar/{id}")

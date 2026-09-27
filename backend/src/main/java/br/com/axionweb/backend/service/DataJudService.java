@@ -10,11 +10,16 @@ import br.com.axionweb.backend.model.processo.Processo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -97,19 +102,36 @@ public class DataJudService {
         RespostaDataJudDTO resposta =
                 consumirApiDataJud(parametro);
 
+        validarResposta(resposta);
+        return resposta.getHits().getHits().stream().map(resultado -> resultado.getSource()).toList();
+    }
+
+    public RespostaDataJudDTO buscarNumeroExato(NumeroCnj numero) {
+        // Somente capa processual; não consulta processos semelhantes ou movimentações.
+        Map<String, Object> body = Map.of(
+                "size", 100, "track_total_hits", true,
+                "_source", List.of("numeroProcesso", "tribunal", "grau", "orgaoJulgador", "classe", "assuntos", "dataAjuizamento"),
+                "query", Map.of("match", Map.of("numeroProcesso", numero.digitos())),
+                "sort", List.of(Map.of("dataHoraUltimaAtualizacao", "desc")));
+        RespostaDataJudDTO resposta = restDataJud.post().uri(montarEndpoint(numero.tribunalOrigem()))
+                .body(body).retrieve().body(RespostaDataJudDTO.class);
+        validarResposta(resposta);
+        return resposta;
+    }
+
+    private void validarResposta(RespostaDataJudDTO resposta) {
+
         if (resposta == null ||
                 resposta.getHits() == null ||
                 resposta.getHits().getHits() == null) {
 
-            return List.of();
+            throw new RestClientException("Resposta DataJud sem a estrutura de resultados esperada");
         }
 
-        return resposta
-                .getHits()
-                .getHits()
-                .stream()
-                .map(resultado -> resultado.getSource())
-                .toList();
+        if (Boolean.TRUE.equals(resposta.getTimedOut())) {
+            throw new RestClientException("DataJud retornou uma consulta incompleta por timeout");
+        }
+
     }
 
 
@@ -119,86 +141,28 @@ public class DataJudService {
         List<Map<String, Object>> filtros =
                 new ArrayList<>();
 
-        if(!parametros.getClasseProcessual().getCodigo().isBlank() || !parametros.getClasseProcessual().getNome().isBlank()){
-            if(!parametros.getClasseProcessual().getCodigo().isBlank()){
-                filtros.add(
-                        Map.of(
-                                "match",
-                                Map.of(
-                                        "classe.codigo",
-                                        parametros.getClasseProcessual().getCodigo()
-                                )
-                        )
-                );
-            }else{
-                filtros.add(
-                        Map.of(
-                                "match",
-                                Map.of(
-                                        "classe.nome",
-                                        parametros.getClasseProcessual().getNome()
-                                )
-                        )
-                );
-            }
+        if (parametros.getClasseProcessual() != null) {
+            adicionarClassificacao(filtros, "classe", parametros.getClasseProcessual().getCodigo(),
+                    parametros.getClasseProcessual().getNome());
         }
 
-        if(!parametros.getAssunto().getCodigo().isBlank() || !parametros.getAssunto().getNome().isBlank()){
-            if(!parametros.getAssunto().getCodigo().isBlank()){
-                filtros.add(
-                        Map.of(
-                                "match",
-                                Map.of(
-                                        "assuntos.codigo",
-                                        parametros.getAssunto().getCodigo()
-                                )
-                        )
-                );
-            }else{
-                filtros.add(
-                        Map.of(
-                                "match",
-                                Map.of(
-                                        "assuntos.nome",
-                                        parametros.getAssunto().getNome()
-                                )
-                        )
-                );
-            }
+        if (parametros.getAssunto() != null) {
+            adicionarClassificacao(filtros, "assuntos", parametros.getAssunto().getCodigo(),
+                    parametros.getAssunto().getNome());
         }
 
-
-        if(!parametros.getOrgaoJulgador().getCodigo().isBlank() || !parametros.getOrgaoJulgador().getNome().isBlank()){
-            if (!parametros.getOrgaoJulgador().getCodigo().isBlank()) {
-                filtros.add(
-                        Map.of(
-                                "match",
-                                Map.of(
-                                        "orgaoJulgador.codigo",
-                                        parametros.getOrgaoJulgador().getCodigo()
-                                )
-                        )
-                );
-            }else{
-                filtros.add(
-                        Map.of(
-                                "match",
-                                Map.of(
-                                        "orgaoJulgador.nome",
-                                        parametros.getOrgaoJulgador().getNome()
-                                )
-                        )
-                );
-            }
+        if (parametros.getOrgaoJulgador() != null) {
+            adicionarClassificacao(filtros, "orgaoJulgador", parametros.getOrgaoJulgador().getCodigo(),
+                    parametros.getOrgaoJulgador().getNome());
         }
 
-        if(!parametros.getGrau().isBlank()){
+        if (StringUtils.hasText(parametros.getGrau())) {
             filtros.add(
                     Map.of(
                             "match",
                             Map.of(
                                     "grau",
-                                    parametros.getGrau()
+                                    parametros.getGrau().trim()
                             )
                     )
             );
@@ -220,10 +184,20 @@ public class DataJudService {
         );
     }
 
+    private void adicionarClassificacao(List<Map<String, Object>> filtros, String campo, String codigo, String nome) {
+        if (StringUtils.hasText(codigo)) {
+            filtros.add(Map.of("match", Map.of(campo + ".codigo", codigo.trim())));
+        } else if (StringUtils.hasText(nome)) {
+            filtros.add(Map.of("match", Map.of(campo + ".nome", nome.trim())));
+        }
+    }
 
     private String montarEndpoint(String tribunal) {
 
-        return switch (tribunal.toUpperCase()) {
+        if (!StringUtils.hasText(tribunal)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe o tribunal do processo antes de solicitar a análise");
+        }
+        return switch (tribunal.trim().toUpperCase(Locale.ROOT)) {
 
             // Tribunais Superiores
             case "TST" ->
@@ -511,8 +485,8 @@ public class DataJudService {
 
 
             default ->
-                    throw new IllegalArgumentException(
-                            "Tribunal não suportado: " + tribunal
+                    throw new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST, "Tribunal não suportado para consulta DataJud"
                     );
         };
     }

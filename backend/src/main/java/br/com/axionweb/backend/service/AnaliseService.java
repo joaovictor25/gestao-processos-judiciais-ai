@@ -15,14 +15,19 @@ import br.com.axionweb.backend.model.datajud.TempoEstatistica;
 import br.com.axionweb.backend.model.processo.Processo;
 import br.com.axionweb.backend.repository.ComunicacaoRepository;
 import br.com.axionweb.backend.repository.DataJudRepository;
+import br.com.axionweb.backend.exception.ConsultaExternaException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
 
 import java.util.List;
 
 @Service
 public class AnaliseService {
+    private static final Logger log = LoggerFactory.getLogger(AnaliseService.class);
 
     @Autowired
     DataJudRepository dataJudRepository;
@@ -54,8 +59,13 @@ public class AnaliseService {
 
 
         // 2. Consulta DataJud
-        List<DadosDataJudDTO> dadosDataJud =
-                dataJudService.buscarProcessos(parametrosDataJud);
+        List<DadosDataJudDTO> dadosDataJud;
+        try {
+            dadosDataJud = dataJudService.buscarProcessos(parametrosDataJud);
+        } catch (RestClientException erro) {
+            throw new ConsultaExternaException(ConsultaExternaException.Servico.DATAJUD, erro);
+        }
+        log.info("Consulta DataJud do processo {} retornou {} processos", id, dadosDataJud.size());
 
 
         // 3. Calcula estatísticas
@@ -102,9 +112,14 @@ public class AnaliseService {
         );
         // Comunicação CNJ
         ParametrosComunicacaoDTO parametrosComunicacao = comunicacaoService.montarParametroComunicacao(processo);
-        List<DadosComunicacaoDTO> dadosComunicacaoDTO = comunicacaoService.consumirApiComunicacao(parametrosComunicacao);
+        List<DadosComunicacaoDTO> dadosComunicacaoDTO;
+        try {
+            dadosComunicacaoDTO = comunicacaoService.consumirApiComunicacao(parametrosComunicacao);
+        } catch (RestClientException erro) {
+            throw new ConsultaExternaException(ConsultaExternaException.Servico.DJEN, erro);
+        }
 
-        System.out.println("Quantidade de comunicações retornadas: " + parametrosComunicacao.getSiglaTribunal());
+        log.info("Consulta DJEN do processo {} retornou {} comunicações", id, dadosComunicacaoDTO.size());
         List<Comunicacao> comunicacoes = dadosComunicacaoDTO.stream()
                 .map(dto -> {
 
@@ -126,7 +141,6 @@ public class AnaliseService {
                     return comunicacao;
                 })
                 .toList();
-        System.out.println("Quantidade convertida para entidade: " + comunicacoes.size());
 
         // Serializa a substituição por processo somente depois de consultar as APIs.
         processoService.bloquearParaAtualizarAnalise(processo.getId());

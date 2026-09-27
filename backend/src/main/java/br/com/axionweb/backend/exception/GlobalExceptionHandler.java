@@ -1,6 +1,7 @@
 package br.com.axionweb.backend.exception;
 
 import br.com.axionweb.backend.dto.erro.ErroResponseDTO;
+import br.com.axionweb.backend.dto.erro.ErroIntegracaoDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -16,6 +17,7 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -92,6 +94,36 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RestClientException.class)
     public ResponseEntity<ErroResponseDTO> integracao() {
         return erro(502, "Não foi possível consultar o serviço externo");
+    }
+
+    @ExceptionHandler(ConsultaCnjException.class)
+    public ResponseEntity<ErroIntegracaoDTO> consultaCnj(ConsultaCnjException exception) {
+        return ResponseEntity.status(exception.getStatus()).body(new ErroIntegracaoDTO(
+                exception.getStatus().value(), exception.getCodigo(), exception.getMessage()));
+    }
+
+    @ExceptionHandler(AnaliseComunicacaoException.class)
+    public ResponseEntity<ErroIntegracaoDTO> analiseComunicacao(AnaliseComunicacaoException exception) {
+        return ResponseEntity.status(exception.getStatus()).body(new ErroIntegracaoDTO(
+                exception.getStatus().value(), exception.getCodigo(), exception.getMessage()));
+    }
+
+    @ExceptionHandler(ConsultaExternaException.class)
+    public ResponseEntity<ErroIntegracaoDTO> consultaExterna(ConsultaExternaException exception) {
+        var causa = exception.getCause();
+        var http = causa instanceof RestClientResponseException resposta ? resposta.getStatusCode().value() : null;
+        // Não registra corpo da resposta externa, credenciais ou conteúdo de processos.
+        log.warn("Análise cancelada: serviço={}, tipo={}, httpExterno={}",
+                exception.getServico(), causa.getClass().getSimpleName(), http);
+        String servico = exception.getServico() == ConsultaExternaException.Servico.DATAJUD ? "DataJud" : "DJEN (comunicações)";
+        if (Integer.valueOf(429).equals(http)) {
+            return ResponseEntity.status(502).body(new ErroIntegracaoDTO(502,
+                    "CONSULTA_" + exception.getServico() + "_LIMITADA",
+                    "O " + servico + " limitou as consultas. Aguarde antes de tentar novamente. A análise não foi salva; os resultados anteriores foram preservados."));
+        }
+        return ResponseEntity.status(502).body(new ErroIntegracaoDTO(502,
+                "CONSULTA_" + exception.getServico() + "_FALHOU",
+                "Não foi possível consultar o " + servico + ". A análise não foi salva; os resultados anteriores foram preservados."));
     }
 
     @ExceptionHandler(Exception.class)

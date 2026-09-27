@@ -1,0 +1,9 @@
+.signup-form .auth-heading { margin-bottom: 27px; }
+.signup-form form { gap: 17px; }
+.signup-submit { width: 100%; margin-top: 4px; }
+.oab-fields { display: grid; grid-template-columns: 1.1fr 1fr; gap: 17px; }
+.oab-fields select { appearance: none; padding-right: 35px; }
+.select-icon { position: absolute; right: 13px; top: 14px; width: 18px; height: 18px; color: var(--color-text-muted); pointer-events: none; }
+.oab-hint { margin-top: -9px; }
+.signup-form .auth-footer { margin-top: 23px; padding-top: 17px; }
+@media (max-width: 760px) { .signup-form .auth-heading { margin-bottom: 28px; } }

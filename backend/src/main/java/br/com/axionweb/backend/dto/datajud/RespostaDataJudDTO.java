@@ -1,11 +1,13 @@
 package br.com.axionweb.backend.dto.datajud;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RespostaDataJudDTO {
 
     private Integer took;
+    @JsonProperty("timed_out")
     private Boolean timedOut;
     private HitsDataJudDTO hits;
 

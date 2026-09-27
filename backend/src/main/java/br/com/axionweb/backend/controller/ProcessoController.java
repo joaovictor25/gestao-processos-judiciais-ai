@@ -3,6 +3,8 @@ package br.com.axionweb.backend.controller;
 import br.com.axionweb.backend.dto.processo.ProcessoRequestDTO;
 import br.com.axionweb.backend.dto.processo.ProcessoResponseDTO;
 import br.com.axionweb.backend.service.ProcessoService;
+import br.com.axionweb.backend.service.ConsultaCnjService;
+import br.com.axionweb.backend.dto.processo.ConsultaCnjResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +15,13 @@ import java.util.List;
 public class ProcessoController {
     @Autowired
     ProcessoService processoService;
+    @Autowired
+    ConsultaCnjService consultaCnjService;
+
+    @GetMapping("/consultar-datajud")
+    public ConsultaCnjResponseDTO consultarDataJud(@RequestParam String numeroProcesso) {
+        return consultaCnjService.consultar(numeroProcesso);
+    }
 
     @PostMapping({"/cadastrar"})
     public ProcessoResponseDTO cadastrar(@RequestBody ProcessoRequestDTO dto) {

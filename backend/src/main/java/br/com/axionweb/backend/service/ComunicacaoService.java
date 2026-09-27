@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class ComunicacaoService {
         ParametrosComunicacaoDTO parametro = new ParametrosComunicacaoDTO();
 
         parametro.setTexto(
-                processo.getAssunto().getNome()
+                processo.getAssunto() == null ? null : processo.getAssunto().getNome()
         );
 
         parametro.setSiglaTribunal(
@@ -95,6 +96,9 @@ public class ComunicacaoService {
     public List<DadosComunicacaoDTO> filtrarDadosComunicacao(
             ComunicacaoResponseDTO resposta) {
 
+        if (resposta == null || resposta.getItems() == null) {
+            throw new RestClientException("Resposta DJEN sem a lista de comunicações esperada");
+        }
         return resposta.getItems()
                 .stream()
                 .map(comunicacao -> {
