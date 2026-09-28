@@ -10,7 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class ComunicacaoService {
@@ -22,11 +25,18 @@ public class ComunicacaoService {
 
     // Montar os parâmetros para busca
     public ParametrosComunicacaoDTO montarParametroComunicacao(Processo processo) {
+        return montarParametroComunicacao(processo,
+                processo.getAssunto() == null ? null : processo.getAssunto().getNome(),
+                processo.getDataInicio(), processo.getDataFim());
+    }
+
+    public ParametrosComunicacaoDTO montarParametroComunicacao(Processo processo, String texto,
+                                                               LocalDate inicio, LocalDate fim) {
 
         ParametrosComunicacaoDTO parametro = new ParametrosComunicacaoDTO();
 
         parametro.setTexto(
-                processo.getAssunto() == null ? null : processo.getAssunto().getNome()
+                texto
         );
 
         parametro.setSiglaTribunal(
@@ -34,16 +44,16 @@ public class ComunicacaoService {
         );
 
         parametro.setDataDisponibilizacaoInicio(
-                processo.getDataInicio()
+                inicio
         );
 
         parametro.setDataDisponibilizacaoFim(
-                processo.getDataFim()
+                fim
         );
 
         parametro.setMeio("D");
         parametro.setPagina(1);
-        parametro.setItensPorPagina(200);
+        parametro.setItensPorPagina(100);
 
         return parametro;
     }
@@ -57,22 +67,24 @@ public class ComunicacaoService {
                 .uri(
                         uriBuilder -> uriBuilder
                                 .path("/api/v1/comunicacao")
-//                                .queryParam(
-//                                        "texto",
-//                                        parametro.getTexto()
-//                                )
+                                //Esse parametro de texto é usado para busca textual
+                                .queryParamIfPresent(
+                                        "texto",
+                                        Optional.ofNullable(parametro.getTexto()).map(texto -> "{texto}")
+                                )
                                 .queryParam(
                                         "siglaTribunal",
                                         parametro.getSiglaTribunal()
                                 )
-                                //.queryParam(
-                                //        "dataDisponibilizacaoInicio",
-                                //        parametro.getDataDisponibilizacaoInicio()
-                                //)
-                                //.queryParam(
-                                //        "dataDisponibilizacaoFim",
-                                //        parametro.getDataDisponibilizacaoFim()
-                                //)
+                                //Esse parametro serve como recorte de tempo das comunicações. Precisa funcionar também
+                                .queryParamIfPresent(
+                                        "dataDisponibilizacaoInicio",
+                                        Optional.ofNullable(parametro.getDataDisponibilizacaoInicio())
+                                )
+                                .queryParamIfPresent(
+                                        "dataDisponibilizacaoFim",
+                                        Optional.ofNullable(parametro.getDataDisponibilizacaoFim())
+                                )
                                 .queryParam(
                                         "meio",
                                         parametro.getMeio()
@@ -85,7 +97,7 @@ public class ComunicacaoService {
                                         "itensPorPagina",
                                         parametro.getItensPorPagina()
                                 )
-                                .build()
+                                .build(Map.of("texto", parametro.getTexto() == null ? "" : parametro.getTexto()))
                 )
                 .retrieve()
                 .body(ComunicacaoResponseDTO.class));

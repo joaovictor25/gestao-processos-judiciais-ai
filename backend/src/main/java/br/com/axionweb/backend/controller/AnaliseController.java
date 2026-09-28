@@ -7,6 +7,8 @@ import br.com.axionweb.backend.service.AnaliseService;
 import br.com.axionweb.backend.service.AnaliseComunicacaoService;
 import br.com.axionweb.backend.dto.comunicacao.AnaliseComunicacaoDTO;
 import br.com.axionweb.backend.dto.comunicacao.AnaliseComunicacaoRequestDTO;
+import br.com.axionweb.backend.dto.comunicacao.PesquisaPublicacoesRequestDTO;
+import br.com.axionweb.backend.service.PesquisaPublicacoesService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,14 @@ public class AnaliseController {
     AnaliseService analiseService;
     @Autowired
     AnaliseComunicacaoService analiseComunicacaoService;
+    @Autowired
+    PesquisaPublicacoesService pesquisaPublicacoesService;
+
+    @PostMapping("/comunicacoes/{processoId}/pesquisar")
+    public List<ComunicacaoSalvaDTO> pesquisarPublicacoes(@PathVariable Long processoId,
+                                                        @Valid @RequestBody PesquisaPublicacoesRequestDTO filtros) {
+        return pesquisaPublicacoesService.pesquisar(processoId, filtros);
+    }
 
     @PostMapping("/comunicacoes/{processoId}/analise-ia")
     public AnaliseComunicacaoDTO analisarComunicacoes(@PathVariable Long processoId,

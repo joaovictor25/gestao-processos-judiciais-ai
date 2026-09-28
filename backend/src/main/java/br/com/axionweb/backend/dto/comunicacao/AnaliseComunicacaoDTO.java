@@ -3,7 +3,7 @@ package br.com.axionweb.backend.dto.comunicacao;
 import java.util.List;
 
 public record AnaliseComunicacaoDTO(int comunicacoesConsideradas, int duplicadasIgnoradas,
-                                    List<Categoria> categorias) {
+                                    List<Categoria> categorias, List<ComunicacaoConsultadaDTO> comunicacoes) {
     public record Categoria(TipoAnaliseComunicacao tipo, List<Item> itens, String limitacao) {}
     public record Item(String titulo, String descricao, String contexto, String decisaoRelacionada,
                        List<Evidencia> evidencias) {}

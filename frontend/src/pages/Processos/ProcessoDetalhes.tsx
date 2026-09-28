@@ -39,14 +39,14 @@ function Detalhes({ id }: { id: number }) {
   if (status === 404) return <NaoEncontrado />;
   if (erro) return <ProcessoFeedback titulo="Não foi possível carregar o processo" mensagem={erro} retry={tentarNovamente} />;
   if (!processo) return <NaoEncontrado />;
-  return <><ProcessHeader processo={processo} analisando={analisando} solicitar={solicitar} />
+  return <><ProcessHeader processo={processo} />
     <ProcessTabs ativa={aba} selecionar={setAba} />
     {aviso.texto && <div className={aviso.erro ? 'notice notice--error process-notice' : 'process-success'} role={aviso.erro ? 'alert' : 'status'}>{aviso.texto}</div>}
     {analisando && <p className="process-analysis-notice" role="status">Análise em andamento. Aguarde a conclusão para consultar os novos resultados.</p>}
     <div role="tabpanel" id={`panel-${aba}`} aria-labelledby={`tab-${aba}`} tabIndex={0}>
       {aba === 'geral' && <InformacoesGeraisTab processo={processo} analisando={analisando} solicitar={solicitar} />}
       {aba === 'datajud' && <DataJudTab processoId={id} versao={versao} analisando={analisando} solicitar={solicitar} />}
-      {aba === 'comunicacoes' && <ComunicacoesTab processoId={id} versao={versao} />}
+      {aba === 'comunicacoes' && <ComunicacoesTab key={`${id}-${versao}`} processoId={id} versao={versao} />}
     </div>
   </>;
 }

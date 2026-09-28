@@ -108,6 +108,7 @@ O vínculo persistido é `usuarios.id <- processos.usuario_id <- datajud_estatis
 | GET | `/api/dados/analise/{processoId}` | Consulta estatísticas e comunicações já salvas para o processo |
 | GET | `/api/dados/estatisticas/{processoId}` | Lista somente as estatísticas salvas do processo |
 | GET | `/api/dados/comunicacoes/{processoId}` | Lista somente as comunicações salvas do processo |
+| POST | `/api/dados/comunicacoes/{processoId}/pesquisar` | Pesquisa publicações no DJEN por texto e período e substitui as comunicações salvas, sem acionar IA ou DataJud |
 | POST | `/api/dados/comunicacoes/{processoId}/analise-ia` | Analisa os textos salvos do processo nas categorias escolhidas, sem gravar o resultado |
 | POST | `/estatisticas/calcular` | Calcula estatísticas dos dados enviados, com autenticação; não consulta registros de outros usuários |
 
@@ -146,15 +147,25 @@ Erros desta consulta usam `{ status, codigo, mensagem }`: `400 / CNJ_INVALIDO`, 
 
 Referências oficiais: [atributos públicos](https://datajud-wiki.cnj.jus.br/api-publica/glossario/), [consulta por número](https://datajud-wiki.cnj.jus.br/api-publica/exemplos/exemplo1/), [endpoints por tribunal](https://datajud-wiki.cnj.jus.br/api-publica/endpoints/) e [numeração CNJ — Resolução 65](https://atos.cnj.jus.br/atos/detalhar/119).
 
-### Análise das comunicações por IA
+### Pesquisa de publicações e análise por IA
+
+`POST /api/dados/comunicacoes/{processoId}/pesquisar` exige JWT do proprietário e recebe os filtros preenchidos na tela:
+
+```json
+{"texto":"indenização por dano moral","dataDisponibilizacaoInicio":"2026-01-01","dataDisponibilizacaoFim":"2026-09-01"}
+```
+
+O texto é obrigatório e não aceita apenas espaços. As datas são opcionais e independentes; o fim não pode ser anterior ao início. Os três valores vêm da requisição, sem usar o assunto ou as datas do cadastro como padrão. Datas ausentes são omitidas da consulta externa. O tribunal vem do processo autorizado. A pesquisa consulta a primeira página do DJEN, com `meio=D` e até 200 publicações, e retorna uma lista de `ComunicacaoSalvaDTO` com IDs. Uma pesquisa bem-sucedida substitui somente as comunicações desse processo, inclusive quando retorna lista vazia; estatísticas DataJud são preservadas. Falhas externas preservam a pesquisa anterior e retornam `CONSULTA_DJEN_FALHOU` ou `CONSULTA_DJEN_LIMITADA`. A pesquisa não depende de chave Gemini nem aciona IA.
 
 `POST /api/dados/comunicacoes/{processoId}/analise-ia` exige JWT do proprietário e um corpo como:
 
 ```json
-{"tiposAnalise":["SINTESE_GERAL","ELEMENTOS_PROBATORIOS","VALORES"]}
+{"tiposAnalise":["SINTESE_GERAL","ELEMENTOS_PROBATORIOS","VALORES"],"comunicacaoIds":[101,102]}
 ```
 
-Categorias aceitas: `SINTESE_GERAL`, `FUNDAMENTOS_DECISOES`, `PADROES_DECISAO`, `ELEMENTOS_PROBATORIOS`, `PADROES_ARGUMENTACAO`, `VALORES`. A resposta `AnaliseComunicacaoDTO` contém a quantidade de textos distintos analisados, duplicados ignorados e somente as categorias solicitadas. Cada item contém título, descrição, contexto e eventual decisão relacionada, além de trechos literais com o número da comunicação de origem. Categorias sem achados retornam lista vazia e uma limitação explícita.
+Os IDs devem corresponder à lista completa retornada pela pesquisa, na mesma ordem. A análise usa esses documentos salvos, sem consultar o DJEN novamente. Se outra pesquisa substituir os documentos antes da análise, retorna `409 / PESQUISA_DESATUALIZADA` e não aciona a IA. Os exemplos de IDs acima são ilustrativos.
+
+Categorias aceitas: `SINTESE_GERAL`, `FUNDAMENTOS_DECISOES`, `PADROES_DECISAO`, `ELEMENTOS_PROBATORIOS`, `PADROES_ARGUMENTACAO`, `VALORES`. A resposta `AnaliseComunicacaoDTO` contém a quantidade de textos distintos analisados, duplicados ignorados, somente as categorias solicitadas e `comunicacoes`, com as fontes normalizadas e numeradas utilizadas na análise. Cada item contém título, descrição, contexto e eventual decisão relacionada, além de trechos literais com o número da comunicação de origem. Categorias sem achados retornam lista vazia e uma limitação explícita.
 
 O backend confirma o proprietário antes de ler as comunicações e usa apenas o campo `texto`. O HTML é convertido em texto legível com jsoup, incluindo a decodificação de entidades, antes de remover textos vazios e duplicados. Cada documento é enviado em uma parte separada, e as citações são conferidas contra esse mesmo texto, com normalização de espaços Unicode e acentos equivalentes. O conteúdo original salvo no banco é preservado. Rejeita conjuntos acima de 500.000 caracteres de texto legível sem fazer análise parcial. A resposta do Gemini é validada: categorias extras, ausência de categorias, formato incompleto e citações cujo trecho não ocorre no documento indicado resultam em erro, sem exibição de conclusões não verificadas. Essa verificação de trechos auxilia a revisão, mas não substitui a conferência profissional do significado de cada achado. A análise não altera comunicações, estatísticas nem o processo e não persiste o resultado gerado.
 

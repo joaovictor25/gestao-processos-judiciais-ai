@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 
-// CRUD usa o Spring Boot/H2 real. Apenas falhas HTTP e execução da análise externa
-// são interceptadas no navegador para não acionar DataJud/DJEN nos testes.
+// CRUD usa o Spring Boot/H2 real. Falhas HTTP são interceptadas no navegador.
 export async function verificarProcessos({ origin, command, evaluate, waitFor, fill, click, pathIs, viewport, screenshot, checks, listen }) {
   const token = await evaluate('sessionStorage.getItem("axion.auth.token")');
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
@@ -14,17 +13,12 @@ export async function verificarProcessos({ origin, command, evaluate, waitFor, f
   const go = async path => { await command('Page.navigate', { url: `${origin}${path}` }); await pathIs(path); };
   let interceptarAtualizacao = false;
   let interceptarLista = false;
-  let analisePendente;
-  let chamadasAnalise = 0;
   const failures = [];
   const removeListener = listen(message => {
     if (message.method !== 'Fetch.requestPaused') return;
     const { requestId, request } = message.params;
     const responder = async () => {
-      if (request.url.includes('/api/dados/analisar/') && request.method === 'POST') {
-        chamadasAnalise++;
-        analisePendente = requestId;
-      } else if ((interceptarAtualizacao && request.method === 'PUT') || (interceptarLista && request.url.includes('/listar-usuario'))) {
+      if ((interceptarAtualizacao && request.method === 'PUT') || (interceptarLista && request.url.includes('/listar-usuario'))) {
         await command('Fetch.fulfillRequest', { requestId, responseCode: 500, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }], body: Buffer.from(JSON.stringify({ mensagem: 'java.lang.Exception detalhe que não pode aparecer' })).toString('base64') });
       } else await command('Fetch.continueRequest', { requestId });
     };
@@ -34,7 +28,7 @@ export async function verificarProcessos({ origin, command, evaluate, waitFor, f
 
   try {
     await command('Fetch.enable', { patterns: [
-      { urlPattern: '*/api/dados/analisar/*' }, { urlPattern: '*/api/processo/atualizar/*' }, { urlPattern: '*/api/processo/listar-usuario' },
+      { urlPattern: '*/api/processo/atualizar/*' }, { urlPattern: '*/api/processo/listar-usuario' },
     ] });
     await viewport(1440, 1000);
     await click('.sidebar-nav a[href="/processos"]');
@@ -154,23 +148,6 @@ export async function verificarProcessos({ origin, command, evaluate, waitFor, f
     await click('.process-state button');
     checks.push('Busca sem acentos e por CNJ sem pontuação; paginação 10/20; cards calculados da API');
 
-    const action = `[data-processo-id="${criado.id}"] .process-analyze-button`;
-    await waitFor(`!document.querySelector(${JSON.stringify(action)}).disabled`);
-    await click(action);
-    await waitFor(`document.querySelector('[data-processo-id="${criado.id}"]').textContent.includes('Análise em andamento')`);
-    assert.equal(await evaluate(`document.querySelector(${JSON.stringify(action)}).disabled`), true);
-    await click(action);
-    assert.equal(chamadasAnalise, 1);
-    await screenshot('processos-analisando');
-    assert.ok(analisePendente);
-    await command('Fetch.fulfillRequest', { requestId: analisePendente, responseCode: 200, responseHeaders: [{ name: 'Content-Type', value: 'text/plain' }], body: Buffer.from('200').toString('base64') });
-    await waitFor(`document.querySelector('[data-processo-id="${criado.id}"]').textContent.includes('Análise disponível')`);
-    await click(action);
-    await waitFor(`document.querySelector('[data-processo-id="${criado.id}"]').textContent.includes('Análise em andamento')`);
-    await command('Fetch.fulfillRequest', { requestId: analisePendente, responseCode: 502, responseHeaders: [{ name: 'Content-Type', value: 'application/json' }], body: Buffer.from('{}').toString('base64') });
-    await waitFor(`document.querySelector('[data-processo-id="${criado.id}"]').textContent.includes('Falha na análise')`);
-    assert.equal(await evaluate(`document.querySelector(${JSON.stringify(action)}).disabled`), false);
-    checks.push('Análise: bloqueio de clique duplicado, resposta texto, sucesso e falha (HTTP simulado)');
     await screenshot('processos-desktop');
     await viewport(820, 1180);
     await screenshot('processos-tablet');
@@ -209,9 +186,6 @@ export async function verificarProcessos({ origin, command, evaluate, waitFor, f
     checks.push('Erro de listagem com mensagem segura e botão de nova tentativa');
     assert.deepEqual(failures, []);
   } finally {
-    if (analisePendente) {
-      try { await command('Fetch.failRequest', { requestId: analisePendente, errorReason: 'Aborted' }); } catch { /* Já concluída. */ }
-    }
     await command('Fetch.disable');
     removeListener();
   }

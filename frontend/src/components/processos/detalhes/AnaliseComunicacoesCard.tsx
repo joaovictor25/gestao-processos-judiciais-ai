@@ -6,8 +6,9 @@ import { mensagemErro } from '../../../services/api';
 import { Button } from '../../ui/Button';
 import { Icon } from '../../ui/Icon';
 
-export function AnaliseComunicacoesCard({ processoId, quantidade, aoResultado }: {
-  processoId: number; quantidade: number; aoResultado: (resultado: AnaliseComunicacao | null) => void;
+export function AnaliseComunicacoesCard({ processoId, comunicacaoIds, habilitado, aoCarregar, aoResultado }: {
+  processoId: number; comunicacaoIds: number[]; habilitado: boolean; aoCarregar: (carregando: boolean) => void;
+  aoResultado: (resultado: AnaliseComunicacao | null) => void;
 }) {
   const [tipos, setTipos] = useState<TipoAnaliseComunicacao[]>([]);
   const [analisando, setAnalisando] = useState(false);
@@ -24,20 +25,21 @@ export function AnaliseComunicacoesCard({ processoId, quantidade, aoResultado }:
   }
 
   async function analisar() {
-    if (emAndamento.current || !quantidade || !tipos.length) return;
+    if (emAndamento.current || !habilitado || !comunicacaoIds.length || !tipos.length) return;
     emAndamento.current = true;
     setAnalisando(true);
+    aoCarregar(true);
     setErro('');
     aoResultado(null);
     const controller = new AbortController();
     pedido.current = controller;
     try {
-      const resultado = await processoService.analisarComunicacoes(processoId, tipos, controller.signal);
+      const resultado = await processoService.analisarComunicacoes(processoId, tipos, comunicacaoIds, controller.signal);
       if (!controller.signal.aborted) aoResultado(resultado);
     } catch (falha) {
       if (!controller.signal.aborted) setErro(mensagemErro(falha));
     } finally {
-      if (!controller.signal.aborted) { emAndamento.current = false; setAnalisando(false); pedido.current = null; }
+      if (!controller.signal.aborted) { emAndamento.current = false; setAnalisando(false); pedido.current = null; aoCarregar(false); }
     }
   }
 
@@ -51,10 +53,10 @@ export function AnaliseComunicacoesCard({ processoId, quantidade, aoResultado }:
         <span>{item.titulo}</span>
       </label>)}
     </fieldset>
-    <Button type="button" loading={analisando} disabled={!quantidade || !tipos.length || analisando} onClick={analisar}>
+    <Button type="button" loading={analisando} disabled={!habilitado || !comunicacaoIds.length || !tipos.length || analisando} onClick={analisar}>
       <Icon name="sparkles" />{analisando ? 'Analisando comunicações...' : 'Analisar com IA'}
     </Button>
-    {!quantidade && <p className="field-hint">É preciso ter comunicações salvas para iniciar a análise.</p>}
+    {(!habilitado || !comunicacaoIds.length) && <p className="field-hint">Pesquise publicações na caixa acima antes de analisar com IA.</p>}
     {erro && <p className="notice notice--error" role="alert">{erro}</p>}
   </aside>;
 }

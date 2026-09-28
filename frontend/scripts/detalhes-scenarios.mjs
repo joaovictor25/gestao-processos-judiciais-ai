@@ -15,6 +15,7 @@ export async function verificarDetalhes({ origin, command, evaluate, waitFor, fi
   assert.equal(await evaluate('document.querySelectorAll(".general-details-main > section").length'), 4);
   assert.equal(await evaluate('document.querySelector(".details-identity h1").textContent'), processo.numeroProcesso);
   assert.equal(await evaluate('document.querySelector(".sidebar-nav a.active").textContent'), 'Processos');
+  assert.equal(await evaluate('document.querySelector(".details-header-actions button")'), null);
   await screenshot('detalhes-gerais-desktop');
   await viewport(390, 844);
   await screenshot('detalhes-gerais-mobile');
@@ -38,13 +39,18 @@ export async function verificarDetalhes({ origin, command, evaluate, waitFor, fi
   let estatisticasLidas = 0;
   let pedidoIA;
   let chamadasIA = 0;
+  let pedidoPesquisa;
+  let corpoPesquisa;
+  let corpoIA;
+  let pesquisas = 0;
   const failures = [];
   const remover = listen(message => {
     if (message.method !== 'Fetch.requestPaused') return;
     const { requestId, request } = message.params;
     const responder = async () => {
       if (request.url.includes('/api/dados/analisar/')) { analises++; pendente = requestId; return; }
-      if (request.url.includes('/analise-ia')) { chamadasIA++; pedidoIA = requestId; return; }
+      if (request.url.includes('/pesquisar')) { pesquisas++; pedidoPesquisa = requestId; corpoPesquisa = JSON.parse(request.postData); return; }
+      if (request.url.includes('/analise-ia')) { chamadasIA++; pedidoIA = requestId; corpoIA = JSON.parse(request.postData); return; }
       const stats = request.url.includes('/api/dados/estatisticas/');
       if (stats) estatisticasLidas++;
       const erro = stats ? erroEstatisticas : erroComunicacoes;
@@ -69,8 +75,8 @@ export async function verificarDetalhes({ origin, command, evaluate, waitFor, fi
 
     const anteriores = estatisticasLidas;
     await click('.datajud-refresh button');
-    await waitFor('document.querySelector(".details-header-actions button").disabled');
-    await click('.details-header-actions button');
+    await waitFor('document.querySelector(".datajud-refresh button").disabled');
+    await click('.datajud-refresh button');
     assert.equal(analises, 1);
     assert.ok(pendente);
     fixtures.estatisticas[0].tempoAtePrimeiroJulgamento.medianaDias = 0;
@@ -93,7 +99,7 @@ export async function verificarDetalhes({ origin, command, evaluate, waitFor, fi
     await viewport(1672, 1000);
 
     await click('.datajud-refresh button');
-    await waitFor('document.querySelector(".details-header-actions button").disabled');
+    await waitFor('document.querySelector(".datajud-refresh button").disabled');
     assert.ok(pendente);
     await command('Fetch.fulfillRequest', { requestId: pendente, responseCode: 502,
       responseHeaders: [{ name: 'Content-Type', value: 'application/json' }],
@@ -104,7 +110,7 @@ export async function verificarDetalhes({ origin, command, evaluate, waitFor, fi
     assert.equal(await evaluate('document.querySelector(".statistic-value").textContent'), '0 dias');
     checks.push('Falha DJEN explica que a análise DataJud não foi salva, preserva resultados e oculta detalhes internos');
     await click('.datajud-refresh button');
-    await waitFor('document.querySelector(".details-header-actions button").disabled');
+    await waitFor('document.querySelector(".datajud-refresh button").disabled');
     assert.ok(pendente);
     await command('Fetch.fulfillRequest', { requestId: pendente, responseCode: 502,
       responseHeaders: [{ name: 'Content-Type', value: 'application/json' }],
@@ -123,6 +129,29 @@ export async function verificarDetalhes({ origin, command, evaluate, waitFor, fi
     await click('#tab-comunicacoes');
     await waitFor('document.querySelectorAll(".communications-table tbody tr").length === 20');
     assert.equal(await evaluate('document.querySelector(".communication-ai-options .button").disabled'), true);
+    assert.deepEqual(await evaluate('[...document.querySelectorAll(".communications-sidebar > * > h2")].map(item => item.textContent)'), ['Pesquisar por publicações', 'Análise das comunicações']);
+    assert.equal(await evaluate('document.querySelectorAll(".communication-ai-options input[type=text], .communication-ai-options input[type=date]").length'), 0);
+    assert.equal(await evaluate('document.querySelector(".publication-search .button").disabled'), true);
+    await fill('publication-text', '   ');
+    assert.equal(await evaluate('document.querySelector(".publication-search .button").disabled'), true);
+    await fill('publication-text', '  contrato & indenização  ');
+    await fill('publication-start', '2026-09-02');
+    await fill('publication-end', '2026-09-01');
+    assert.equal(await evaluate('document.querySelector(".publication-search .button").disabled'), true);
+    await fill('publication-start', '2026-01-01');
+    await click('.publication-search .button');
+    await waitFor('document.querySelector(".publication-search .button").disabled');
+    assert.equal(chamadasIA, 0);
+    assert.equal(pesquisas, 1);
+    assert.deepEqual(corpoPesquisa, { texto: 'contrato & indenização', dataDisponibilizacaoInicio: '2026-01-01', dataDisponibilizacaoFim: '2026-09-01' });
+    await command('Fetch.fulfillRequest', { requestId: pedidoPesquisa, responseCode: 200,
+      responseHeaders: [{ name: 'Content-Type', value: 'application/json' }], body: Buffer.from(JSON.stringify(fixtures.comunicacoes)).toString('base64') });
+    pedidoPesquisa = undefined;
+    await waitFor('document.querySelector(".communications-results h2")?.textContent === "Publicações da última pesquisa"');
+    await screenshot('publicacoes-pesquisa-desktop');
+    await viewport(320, 720);
+    await screenshot('publicacoes-pesquisa-mobile');
+    await viewport(1672, 1000);
     await click('.communication-ai-choice:first-of-type');
     await click('.communication-ai-choice:last-of-type');
     assert.equal(await evaluate('document.querySelectorAll(".communication-ai-choice input:checked").length'), 2);
@@ -130,9 +159,13 @@ export async function verificarDetalhes({ origin, command, evaluate, waitFor, fi
     await waitFor('Boolean(document.querySelector(".communication-ai-options .button:disabled"))');
     assert.equal(chamadasIA, 1);
     assert.ok(pedidoIA);
+    assert.equal(pesquisas, 1);
+    assert.deepEqual(corpoIA, { tiposAnalise: ['SINTESE_GERAL', 'VALORES'], comunicacaoIds: fixtures.comunicacoes.map(item => item.id) });
+    assert.equal(await evaluate('document.getElementById("publication-text").matches(":disabled")'), true);
     await command('Fetch.fulfillRequest', { requestId: pedidoIA, responseCode: 200,
       responseHeaders: [{ name: 'Content-Type', value: 'application/json' }], body: Buffer.from(JSON.stringify({
         comunicacoesConsideradas: 23, duplicadasIgnoradas: 0,
+        comunicacoes: fixtures.comunicacoes.map(({ id, processoId, ...item }, indice) => ({ ...item, numero: indice + 1 })),
         categorias: [
           { tipo: 'SINTESE_GERAL', limitacao: null, itens: [{ titulo: 'Síntese do conjunto', descricao: 'Foram encontradas intimações.', contexto: null, decisaoRelacionada: null, evidencias: [{ comunicacao: 1, trecho: 'Intime-se a parte' }] }] },
           { tipo: 'VALORES', limitacao: 'Não foram identificadas informações suficientes nas comunicações analisadas para esta categoria.', itens: [] },
@@ -145,6 +178,7 @@ export async function verificarDetalhes({ origin, command, evaluate, waitFor, fi
     await click('.communication-ai-choice:last-of-type');
     await waitFor('!document.querySelector(".communication-ai-result")');
     checks.push('IA das comunicações: seleção múltipla, bloqueio durante envio, resultado por categoria, evidência e ausência de dados suficientes');
+    checks.push('Pesquisa em caixa separada acima da IA; texto obrigatório, datas opcionais, busca sem acionar IA e análise sem repetir pesquisa; botão do topo removido');
     assert.deepEqual(await evaluate('[...document.querySelectorAll(".communications-table th")].map(node => node.textContent)'), ['Data', 'Tipo', 'Meio', 'Documento', 'Status', 'Texto', 'Ações']);
     assert.equal(await evaluate('document.querySelector(".pagination-count").textContent'), '1–20 de 23 comunicações');
     await click('button[aria-label="Página 2"]');
@@ -181,6 +215,27 @@ export async function verificarDetalhes({ origin, command, evaluate, waitFor, fi
     await fill('communication-search', 'sem-correspondencia-zz');
     await waitFor('document.body.textContent.includes("Nenhuma comunicação corresponde")');
     await fill('communication-search', '');
+    await fill('publication-text', 'sem resultado');
+    assert.equal(await evaluate('document.querySelector(".communication-ai-options .button").disabled'), true);
+    await fill('publication-start', '');
+    await fill('publication-end', '');
+    await click('.publication-search .button');
+    await waitFor('document.querySelector(".publication-search .button").disabled');
+    assert.deepEqual(corpoPesquisa, { texto: 'sem resultado' });
+    await command('Fetch.fulfillRequest', { requestId: pedidoPesquisa, responseCode: 200,
+      responseHeaders: [{ name: 'Content-Type', value: 'application/json' }], body: Buffer.from('[]').toString('base64') });
+    pedidoPesquisa = undefined;
+    await waitFor('document.body.textContent.includes("Nenhuma publicação encontrada para os filtros informados")');
+    assert.equal(await evaluate('document.querySelector(".communication-ai-options .button").disabled'), true);
+    assert.equal(await evaluate('document.querySelectorAll(".communications-table tbody tr").length'), 0);
+    await click('.publication-search .button');
+    await waitFor('document.querySelector(".publication-search .button").disabled');
+    await command('Fetch.fulfillRequest', { requestId: pedidoPesquisa, responseCode: 502,
+      responseHeaders: [{ name: 'Content-Type', value: 'application/json' }], body: Buffer.from(JSON.stringify({ codigo: 'CONSULTA_DJEN_LIMITADA', mensagem: 'detalhe interno' })).toString('base64') });
+    pedidoPesquisa = undefined;
+    await waitFor('document.body.textContent.includes("O DJEN limitou as consultas de publicações")');
+    assert.equal(await evaluate('document.body.textContent.includes("detalhe interno")'), false);
+    checks.push('Pesquisa sem datas, alteração dos filtros desabilita IA, pesquisa vazia limpa a tabela e limite DJEN recebe mensagem segura');
     erroComunicacoes = true;
     await click('#tab-geral'); await click('#tab-comunicacoes');
     await waitFor('document.body.textContent.includes("Não foi possível carregar as comunicações")');
@@ -197,6 +252,7 @@ export async function verificarDetalhes({ origin, command, evaluate, waitFor, fi
   } finally {
     if (pendente) { try { await command('Fetch.failRequest', { requestId: pendente, errorReason: 'Aborted' }); } catch { /* Cancelada. */ } }
     if (pedidoIA) { try { await command('Fetch.failRequest', { requestId: pedidoIA, errorReason: 'Aborted' }); } catch { /* Cancelada. */ } }
+    if (pedidoPesquisa) { try { await command('Fetch.failRequest', { requestId: pedidoPesquisa, errorReason: 'Aborted' }); } catch { /* Cancelada. */ } }
     await command('Fetch.disable'); remover();
   }
   if (process.env.ANALISE_LIVE === '1') {
@@ -212,7 +268,7 @@ export async function verificarDetalhes({ origin, command, evaluate, waitFor, fi
     await waitFor('document.querySelector(".general-details-grid")');
     await click('#tab-datajud');
     await waitFor('document.body.textContent.includes("Nenhuma análise DataJud foi realizada")');
-    await click('.details-header-actions button');
+    await click('.datajud-panel .process-state button');
     for (let index = 0; index < 120; index++) {
       if (await evaluate('document.querySelector(".process-success, [role=alert]") !== null')) break;
       await new Promise(resolve => setTimeout(resolve, 500));

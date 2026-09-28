@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ProcessoPageHeader } from '../../components/processos/ProcessoPageHeader';
 import { ProcessoFeedback, ProcessoLoading } from '../../components/processos/ProcessoFeedback';
@@ -8,9 +8,9 @@ import { emAndamento, normalizarTexto } from '../../components/processos/process
 import { Input } from '../../components/forms/Input';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
-import { ApiError, mensagemErro } from '../../services/api';
+import { mensagemErro } from '../../services/api';
 import { processoService } from '../../services/processoService';
-import type { EstadoAnalise, Processo, ProcessoResumo } from '../../types/processo';
+import type { EstadoAnalise, Processo } from '../../types/processo';
 import './Processos.css';
 
 export function Processos() {
@@ -25,7 +25,6 @@ export function Processos() {
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(10);
   const [aviso, setAviso] = useState<{ mensagem: string; erro?: boolean } | null>(null);
-  const emExecucao = useRef(new Set<number>());
 
   useEffect(() => {
     const state: unknown = location.state;
@@ -75,30 +74,12 @@ export function Processos() {
   }, [tentativa]);
 
   async function consultar(id: number) {
-    if (emExecucao.current.has(id)) return;
     setAnalises(current => ({ ...current, [id]: { status: 'consultando' } }));
     try {
       const resultado = await processoService.consultarAnalise(id);
       const possuiResultados = resultado.estatisticas.length > 0 || resultado.comunicacoes.length > 0;
       setAnalises(current => ({ ...current, [id]: { status: possuiResultados ? 'disponivel' : 'nao-analisado', possuiResultados } }));
     } catch { setAnalises(current => ({ ...current, [id]: { status: 'indisponivel' } })); }
-  }
-
-  async function analisar(processo: ProcessoResumo) {
-    if (emExecucao.current.has(processo.id)) return;
-    emExecucao.current.add(processo.id);
-    const anterior = analises[processo.id];
-    setAnalises(current => ({ ...current, [processo.id]: { status: 'analisando', possuiResultados: anterior?.possuiResultados, iniciadaEm: new Date().toISOString() } }));
-    setAviso(null);
-    try {
-      await processoService.analisar(processo.id);
-      setAnalises(current => ({ ...current, [processo.id]: { status: 'disponivel', possuiResultados: true } }));
-      setAviso({ mensagem: `Análise do processo ${processo.numeroProcesso || processo.id} concluída com sucesso.` });
-    } catch (error) {
-      const semConfirmacao = error instanceof ApiError && error.status === 0;
-      setAnalises(current => ({ ...current, [processo.id]: { status: semConfirmacao ? 'indisponivel' : 'falha', possuiResultados: anterior?.possuiResultados } }));
-      setAviso({ erro: true, mensagem: semConfirmacao ? 'A conexão foi interrompida e não foi possível confirmar a conclusão. Consulte novamente o status do processo.' : `Não foi possível analisar o processo ${processo.numeroProcesso || processo.id}. ${mensagemErro(error)}` });
-    } finally { emExecucao.current.delete(processo.id); }
   }
 
   const termo = normalizarTexto(busca);
@@ -113,7 +94,7 @@ export function Processos() {
   const aguardando = semResumo ? null : processos.filter(processo => !analises[processo.id]?.possuiResultados && analises[processo.id]?.status !== 'analisando').length;
 
   return <div className="process-module">
-    <ProcessoPageHeader titulo="Processos" descricao="Gerencie os processos cadastrados e solicite novas análises."
+    <ProcessoPageHeader titulo="Processos" descricao="Gerencie os processos cadastrados e consulte seus detalhes."
       acao={<Link className="button button--primary" to="/processos/novo"><Icon name="plus" width="20" />Novo processo</Link>} />
     {aviso && <div className={`notice ${aviso.erro ? 'notice--error' : 'notice--success'} process-notice`} role={aviso.erro ? 'alert' : 'status'}><Icon name={aviso.erro ? 'alert' : 'check'} /><span>{aviso.mensagem}</span><button type="button" aria-label="Fechar mensagem" onClick={() => setAviso(null)}><Icon name="close" /></button></div>}
     <section className="process-summary-grid" aria-label="Resumo dos processos">
@@ -126,9 +107,8 @@ export function Processos() {
       : !processos.length ? <ProcessoFeedback titulo="Nenhum processo cadastrado." mensagem="Adicione seu primeiro processo para começar a organizar sua carteira."><Link className="button button--primary" to="/processos/novo"><Icon name="plus" width="18" />Cadastrar primeiro processo</Link></ProcessoFeedback>
       : !filtrados.length ? <ProcessoFeedback titulo="Nenhum processo encontrado" mensagem="Tente buscar por outro número ou nome de cliente."><Button variant="secondary" onClick={() => { setBusca(''); setPagina(1); }}>Limpar busca</Button></ProcessoFeedback>
       : <section className="process-list-panel" aria-label="Lista de processos">
-        <ProcessoTable processos={visiveis} analises={analises} analisar={processo => void analisar(processo)} consultar={id => void consultar(id)} />
+        <ProcessoTable processos={visiveis} analises={analises} consultar={id => void consultar(id)} />
         <Pagination total={filtrados.length} pagina={paginaAtual} porPagina={porPagina} mudarPagina={setPagina} mudarQuantidade={quantidade => { setPorPagina(quantidade); setPagina(1); }} />
       </section>}
-    {!loading && !erro && processos.length > 0 && <p className="process-analysis-note"><Icon name="info" />Uma nova análise substitui os resultados anteriores somente do processo selecionado.</p>}
   </div>;
 }

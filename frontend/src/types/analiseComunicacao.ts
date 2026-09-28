@@ -1,3 +1,12 @@
+import type { Comunicacao } from './comunicacao';
+
+export interface PesquisaPublicacoesRequest {
+  texto: string;
+  dataDisponibilizacaoInicio?: string;
+  dataDisponibilizacaoFim?: string;
+}
+export interface ComunicacaoConsultada extends Omit<Comunicacao, 'id' | 'processoId'> { numero: number }
+
 export const tiposAnaliseComunicacao = [
   { codigo: 'SINTESE_GERAL', titulo: 'Síntese geral' },
   { codigo: 'FUNDAMENTOS_DECISOES', titulo: 'Fundamentos e decisões' },
@@ -25,4 +34,5 @@ export interface AnaliseComunicacao {
   comunicacoesConsideradas: number;
   duplicadasIgnoradas: number;
   categorias: CategoriaAnaliseComunicacao[];
+  comunicacoes: ComunicacaoConsultada[];
 }

@@ -1,7 +1,7 @@
 import type { AnaliseProcesso, Processo, ProcessoRequest, ConsultaCnjResponse } from '../types/processo';
 import type { EstatisticasProcessuais } from '../types/estatisticas';
 import type { Comunicacao } from '../types/comunicacao';
-import type { AnaliseComunicacao, TipoAnaliseComunicacao } from '../types/analiseComunicacao';
+import type { AnaliseComunicacao, TipoAnaliseComunicacao, PesquisaPublicacoesRequest } from '../types/analiseComunicacao';
 import { ApiError, apiRequest } from './api';
 import { authService } from './authService';
 
@@ -21,7 +21,9 @@ export const processoService = {
   analisar: (id: number) => apiRequest<string>(`/api/dados/analisar/${id}`, { method: 'POST', token: token(), responseType: 'text' }),
   estatisticas: (id: number, signal?: AbortSignal) => apiRequest<EstatisticasProcessuais[]>(`/api/dados/estatisticas/${id}`, { token: token(), signal }),
   comunicacoes: (id: number, signal?: AbortSignal) => apiRequest<Comunicacao[]>(`/api/dados/comunicacoes/${id}`, { token: token(), signal }),
-  analisarComunicacoes: (id: number, tiposAnalise: TipoAnaliseComunicacao[], signal?: AbortSignal) =>
+  pesquisarPublicacoes: (id: number, filtros: PesquisaPublicacoesRequest, signal?: AbortSignal) =>
+    apiRequest<Comunicacao[]>(`/api/dados/comunicacoes/${id}/pesquisar`, { method: 'POST', body: filtros, token: token(), signal }),
+  analisarComunicacoes: (id: number, tiposAnalise: TipoAnaliseComunicacao[], comunicacaoIds: number[], signal?: AbortSignal) =>
     apiRequest<AnaliseComunicacao>(`/api/dados/comunicacoes/${id}/analise-ia`,
-      { method: 'POST', body: { tiposAnalise }, token: token(), signal }),
+      { method: 'POST', body: { tiposAnalise, comunicacaoIds }, token: token(), signal }),
 };

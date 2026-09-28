@@ -35,11 +35,14 @@ export async function apiRequest<T>(path: string, { body, token, responseType = 
 
   if (!response.ok) {
     if (response.status === 401 && token) window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
-    if (/^\/api\/dados\/comunicacoes\/\d+\/analise-ia$/.test(path) && [422, 429, 502, 503].includes(response.status)) {
+    if (/^\/api\/dados\/comunicacoes\/\d+\/(analise-ia|pesquisar)$/.test(path) && [409, 422, 429, 502, 503].includes(response.status)) {
       const erro: unknown = await response.json().catch(() => null);
       const mensagens: Record<string, string> = {
-        SEM_TEXTOS: 'Não há textos de comunicações salvas para analisar neste processo.',
-        EXCESSO_DE_TEXTO: 'Os textos salvos excedem o limite desta análise.',
+        SEM_TEXTOS: 'Não há textos de publicações para analisar. Faça outra pesquisa.',
+        EXCESSO_DE_TEXTO: 'Os textos excedem o limite desta análise. Refine o texto ou o período da pesquisa.',
+        PESQUISA_DESATUALIZADA: 'As publicações foram atualizadas. Pesquise novamente antes de analisar.',
+        CONSULTA_DJEN_FALHOU: 'Não foi possível pesquisar publicações no DJEN. Tente novamente mais tarde.',
+        CONSULTA_DJEN_LIMITADA: 'O DJEN limitou as consultas de publicações. Aguarde antes de tentar novamente.',
         CONFIGURACAO_AUSENTE: 'Configure GEMINI_API_KEY no backend para habilitar esta análise.',
         LIMITE_EXTERNO: 'O serviço de IA limitou as solicitações. Aguarde antes de tentar novamente.',
         RESPOSTA_INCOMPLETA: 'A IA interrompeu a resposta. Selecione menos categorias e tente novamente.',

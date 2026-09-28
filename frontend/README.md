@@ -58,6 +58,7 @@ O servidor que hospedar `dist/` deve encaminhar rotas como `/login`, `/cadastro`
 | GET | `/api/dados/analise/{id}` | Consulta presença de resultados para a listagem |
 | GET | `/api/dados/estatisticas/{id}` | Recupera as estatísticas DataJud salvas |
 | GET | `/api/dados/comunicacoes/{id}` | Recupera as comunicações salvas |
+| POST | `/api/dados/comunicacoes/{id}/pesquisar` | Pesquisa publicações por texto e datas no DJEN, sem acionar IA |
 | POST | `/api/dados/comunicacoes/{id}/analise-ia` | Analisa as categorias escolhidas usando apenas os textos salvos da conta |
 | POST | `/api/dados/analisar/{id}` | Executa análise e substitui os resultados desse processo; resposta em texto |
 
@@ -70,7 +71,7 @@ O JWT fica em `sessionStorage`, somente para a aba atual; senha e dados pessoais
 - `/login`: autenticação real, validação, mostrar/ocultar senha, loading e erros seguros.
 - `/cadastro`: cadastro real e redirecionamento para login com confirmação de sucesso.
 - `/dashboard`: layout protegido, menu responsivo, quatro indicadores e gráfico em CSS com o card de atividades recentes ao lado nas telas maiores.
-- `/processos`: listagem real, indicadores da carteira, busca por número/cliente, paginação 10/20/50 e ações Ver/Analisar.
+- `/processos`: listagem real, indicadores da carteira, busca por número/cliente, paginação 10/20/50 e ação Ver para abrir os detalhes do processo.
 - `/processos/novo`: formulário completo, dividido em cinco seções, validação, moeda brasileira e cadastro real.
 - `/processos/:id/editar`: mesmo formulário com dados carregados, atualização por PUT e tratamento de processo inexistente ou indisponível para a conta.
 - `/processos/:id`: página única de detalhes, aberta pelo botão Ver. Cabeçalho compartilhado e abas Informações gerais, DataJud e Comunicações, sem trocar a rota. Editar abre o formulário; Solicitar análise atualiza os resultados salvos.
@@ -81,7 +82,9 @@ Na aba DataJud, os três indicadores mostram mediana até o primeiro julgamento,
 
 Comunicações possui busca somente no texto, paginação 20/50/100 e modal de detalhes aberto pelo botão Ver. O modal fecha pelo X, pelo botão Fechar, pela tecla Esc ou pelo fundo, devolvendo o foco ao botão de origem. HTML recebido é convertido para texto e nunca inserido como HTML executável. Os detalhes mostram o código do órgão disponibilizado pelo DTO, sem deduzir seu nome a partir do processo cadastrado.
 
-Na aba Comunicações, o card lateral **Análise das comunicações** permite escolher uma ou várias categorias. O botão é habilitado apenas com comunicações salvas e ao menos uma categoria marcada. Enquanto a solicitação está em andamento, bloqueia novos envios e mostra carregamento. O resultado aparece na área principal por categoria, com trechos literais que sustentam os achados, limitações da amostra e aviso de que não é previsão judicial ou recomendação jurídica. Alterar a seleção limpa o resultado anterior. A chave do Gemini é configurada somente no backend; veja `backend/README.md`.
+Na aba Comunicações, a coluna direita contém **Pesquisar por publicações** acima de **Análise das comunicações**. A pesquisa exige texto e aceita datas inicial e final opcionais, sem usar os valores do cadastro. O botão **Pesquisar publicações** consulta o DJEN e atualiza a lista, sem acionar IA. Um período invertido impede o envio. Uma pesquisa vazia limpa os resultados; falhas preservam os dados anteriores e exibem uma mensagem na caixa de pesquisa. O botão **Solicitar análise** foi removido do topo dos detalhes; as ações específicas das demais abas permanecem disponíveis.
+
+Depois de pesquisar, selecione uma ou várias categorias e use **Analisar com IA**. O frontend envia os IDs das publicações da pesquisa; o backend analisa esse conjunto sem repetir a consulta DJEN. Durante a análise, a pesquisa fica bloqueada. Alterar os filtros exige pesquisar novamente antes de analisar. Resultados vazios ou nenhuma categoria selecionada desabilitam a IA. O resultado aparece por categoria com trechos literais e limitações; a tabela passa a mostrar as fontes normalizadas numeradas conforme as evidências. Alterar as categorias limpa a análise e volta às publicações da pesquisa. A chave do Gemini é configurada somente no backend; veja `backend/README.md`.
 
 ### Limites do contrato atual
 
