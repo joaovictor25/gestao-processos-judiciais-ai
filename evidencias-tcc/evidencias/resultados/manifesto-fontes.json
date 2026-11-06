@@ -1,0 +1,838 @@
+[
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/BackendApplication.java",
+    "sha256": "d7ccb495a95ef10feef6700616d59bb2f30d34c1d3a9a6d65a616d1bfddecd4d"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/config/DataJudAgendamentoConfig.java",
+    "sha256": "3232d05965ab7bf373b7e095431aaf350d02aff667c74d60fea7b4233f4e8d1b"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/config/RestComunicacaoConfig.java",
+    "sha256": "d4420d9bd1dc11019c0e4496961ad61201783d79a1ebc62b00523e458bde3b50"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/controller/AnaliseController.java",
+    "sha256": "30b1e180ea3cf740f8d9c1efaf69115a9d85cc51708c8386d02cfa4ffca10135"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/controller/AuthController.java",
+    "sha256": "e411950c3808b6457cc715ba49e479e308e17d3179bdfbf77383e4d30e66e4d5"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/controller/DashboardController.java",
+    "sha256": "039cb5bb8ef28c568b7cd6841fe0ea48ab85c9449920181c7fdd54dd90ba7012"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/controller/EstatisticaProcessualController.java",
+    "sha256": "1513a9a3d7c8ab32a34e61f7a64a881c32c2ad99717793e280f6e055d804b1ad"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/controller/ProcessoController.java",
+    "sha256": "6e8144d1c9c1c0578c1bb3e1e537b581db55261563ff142793e3367dc117719a"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/controller/SinteseComunicacaoController.java",
+    "sha256": "d35f64b778bd7eeab613be8f76689b950e960ca2aea5a5b9546e94ed32ea529b"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/analise/AnaliseResponseDTO.java",
+    "sha256": "9714936cb4f70797e7ec9002bf02202139c21a6359e23103d23dd791a8de723e"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/auth/CadastroUsuarioRequestDTO.java",
+    "sha256": "79259a5f8caed87cdd73bf9e6e72f565e545802e1314f7ad0660df5c75840cbf"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/auth/LoginRequestDTO.java",
+    "sha256": "1d3596f07ae55167d334ad9222148e0056854ebc9ebe1a3c9a8bb00e93170aca"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/auth/LoginResponseDTO.java",
+    "sha256": "7d9eb6c7e5550dcd610b3ad88bb2e37ee8f666fc2e47f1eb97bb0fdd50d2056a"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/auth/UsuarioResponseDTO.java",
+    "sha256": "241fa4d2c7b73ed934a53946654f03038e8c0d0cd76f71f56b733fdd42c669cf"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/comunicacao/AnaliseComunicacaoDTO.java",
+    "sha256": "47180924f9e3f75a0f2cfde8dd57d0832340a6d774ada7101ba62e01b3def4ca"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/comunicacao/AnaliseComunicacaoRequestDTO.java",
+    "sha256": "b125a08bb71a064898bf56b42345758fa091819cb00363dd897e6aeeeb9ba3ca"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/comunicacao/ComunicacaoConsultadaDTO.java",
+    "sha256": "625575c28ac22af467dbb22db400f34c52e2fd5c38fcfbcd0056b5916a519041"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/comunicacao/ComunicacaoDTO.java",
+    "sha256": "d258ba2510dc15ff9234e5b3b89083e904aac519852f8d3648c8bb3c8523d322"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/comunicacao/ComunicacaoResponseDTO.java",
+    "sha256": "e3a3c2c63b3e01566f19d46f563341591f7cdb35f9aeb096b8d1d6738d324e1a"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/comunicacao/ComunicacaoSalvaDTO.java",
+    "sha256": "096f916cb9bdd5f7910038576758df65b05d31f2d324b9da959d076bd08b6b65"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/comunicacao/DadosComunicacaoDTO.java",
+    "sha256": "3532a059d16f86c1ed846064d6a72c5b77d9a0262720ba59076bcd70252b3e1c"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/comunicacao/ParametrosComunicacaoDTO.java",
+    "sha256": "7c0cb03942b2adb95cb742726085be1347f06858b24ad5aa88041060ee8de213"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/comunicacao/PesquisaComunicacaoDTO.java",
+    "sha256": "2e2d7f16a872646985f1a28c006d205bcbe1fbf8552b1b21e895a3af7e78f5f4"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/comunicacao/PesquisaPublicacoesRequestDTO.java",
+    "sha256": "eabb49c210e09c9175baa9391c8c1b073bfd38d75e80147169134a5402a5b580"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/comunicacao/SinteseComunicacaoRequestDTO.java",
+    "sha256": "3ca27410ace32179807220f48cdd23037157dc320c4f4fb937336647d627310d"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/comunicacao/TipoAnaliseComunicacao.java",
+    "sha256": "cceaca67616e48479b565f8589bd0025a0f1956f9ac93c1ddf919afc23311738"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/AssuntoDataJudDTO.java",
+    "sha256": "28bb7953ec41a7ab2a93445b5cba5baab9afafec21628835807c169b099e82bb"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/ClasseDataJudDTO.java",
+    "sha256": "2d56637e1a75a3a49dd25b8b8164b92712518d559a297c1ec11b290bbf57d3da"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/ComplementoTabeladoDTO.java",
+    "sha256": "8211523da0751ba3ae7a73968dfa01c0fbbabb8952d3be6996ad670a93fad54c"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/ConsultaEstatisticaDTO.java",
+    "sha256": "726add5de90603f6486341b0438e6d010d3a38ecd09ab2eafa236390fa8a8332"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/DadosDataJudDTO.java",
+    "sha256": "efc63181eb48ca81734bf250f0cb81717f16c87cf2b783e73d29a7233d7d6bfc"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/DataJudResponseDTO.java",
+    "sha256": "c0a77fef7e7d4822529a647f4df036fefc31750f365ef688a6be8c53c213c427"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/EstatisticasProcessuaisDTO.java",
+    "sha256": "cbd1ff2b3c9f9b24698449b2aefbe2d97bd1740628bd6835ad47703b79dba7c3"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/FormatoDataJudDTO.java",
+    "sha256": "67d5cf9ad380053cb41c2c51eeedcc8729d2b9e646a629bd135abb04920d8c2c"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/GerarEstatisticasRequestDTO.java",
+    "sha256": "e31f9d3b1ad811c28ce4b0b3eb4a62f1e5274e98ba6feb673b00d9918ead6d92"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/HistoricoSintesesDTO.java",
+    "sha256": "b6359734e4162c83eaa4dc49685477959aef0f58ac9336cdaa4d88a5bc2b3f5c"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/HitsDataJudDTO.java",
+    "sha256": "b93d4dc60bd93f7582bece0f153a963f9337a64fd4370546437c2f3ea3c4c90d"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/MovimentoDataJudDTO.java",
+    "sha256": "76407dffdf9c63ea9e74cc82e5dc8d892086969ac862f2aa768dffd90a34148c"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/OrgaoJulgadorDataJudDTO.java",
+    "sha256": "8c1106953e6f71eed4b8a80fe765a866f7902dcf159160af0bd05643488a4c43"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/ParametroConsultaDataJudDTO.java",
+    "sha256": "045b503c59c07bccbe17e30150028818bb5a1e82763c8c5a02d95adc2cf3180d"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/ParametrosDataJudDTO.java",
+    "sha256": "e590492f003ec967246830707df7d596105ab34efa2dec5a73e0af9bd18dc2fe"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/RespostaDataJudDTO.java",
+    "sha256": "a166a6cb2ac70ecc557d73463a80dfa9c5025aaa6c724b3a48479f8e09a0ae86"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/ResultadoDataJudDTO.java",
+    "sha256": "40a79c9138afdb18113748ef029a12d354f04fb48614f97fe08a30461cca8d48"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/SinteseDataJudDTO.java",
+    "sha256": "aa6c1171c78da089375bd39dcf3d0d0be1927bba4a1a2e9ed2e7d7e629e5abec"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/SinteseDataJudRequestDTO.java",
+    "sha256": "4fce6525c41574850a28cefaf453e6e9619b81c33a574f616e0c04d931c82d63"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/SistemaDataJudDTO.java",
+    "sha256": "d080e6d23d82e235e52301fc72fd42e9f64ec057efe07e5270ab81f5ed2ef069"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/SolicitacaoEstatisticaDTO.java",
+    "sha256": "d6ebed7deb87013df451dd8c98bc6254bd26c70d0ded0c6e67587549b50d16bf"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/TempoEstatisticaDTO.java",
+    "sha256": "7f400a1340a7107858783f4b83c2821345644447857bddffdb98b865b142adb9"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/datajud/TotalDataJudDTO.java",
+    "sha256": "cb02d903fddf712c2f7b7eaeb0c78b404fcd0f568e23b03b99a8a28d1bbade29"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/erro/ErroIntegracaoDTO.java",
+    "sha256": "f4ae2608271cfc963d0fec9c431ded0a04d3f9febb262977dcf240a2c13655ca"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/erro/ErroResponseDTO.java",
+    "sha256": "73c7b129514ab9963bf2c0ca373a8831b2239f896b9a79e540d2ec163b1ae0a6"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/processo/ConsultaCnjResponseDTO.java",
+    "sha256": "2df60dea7700a1cabede4978bc2b7cf7f1fc5190b9818346ad3214a6b34b9034"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/processo/ProcessoRequestDTO.java",
+    "sha256": "bc57f1a4cedf782489ae6ea7c4e58fbf89d3c60ac92b6083c296d6ea19bd5e3f"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/dto/processo/ProcessoResponseDTO.java",
+    "sha256": "0f0e76dc35bf53c5c502b65dd465b01c97528f6bda848d541ee3235ecf61835e"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/exception/AnaliseComunicacaoException.java",
+    "sha256": "ff29746e6f4281bd04008edd49524b7e9682b694018a912601385cdea32248e1"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/exception/ConsultaCnjException.java",
+    "sha256": "9dab8252ffb50471310961cf8ea6d4988426bf1c7335b3dd24cb9a15ff0729ec"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/exception/ConsultaExternaException.java",
+    "sha256": "a56ac45c2f56a182047a6754e65841fdc13172fd68313112d4e0836ede87ac92"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/exception/DataJudAguardarException.java",
+    "sha256": "bd38bdc11244ce88dd09cebfb8f86cfd94e8f17a1547e8bd1ae8d96e506b86fc"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/exception/EmailJaCadastradoException.java",
+    "sha256": "aeb139b0cbc78a078ce4ce9f08fbb7608859fab9591d1a45729fc59cb5c4db7b"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/exception/EstatisticasSemProcessosException.java",
+    "sha256": "89924eb8d25cd4d1fd7094e1a156402c439a52464a42adde637aa9554b8fe060"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/exception/GlobalExceptionHandler.java",
+    "sha256": "20c87edf07d13390cc52b39a9d966be874b4c509424c4161616e678c59a70928"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/exception/ProcessoNaoEncontradoException.java",
+    "sha256": "37b8f9596ff337527321f70c4a331505f64ccc0f7b2fe919cbf37969dea1cf2b"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/model/comunicacao/Comunicacao.java",
+    "sha256": "19a2309bd201d13f76b7b880f902fcfb40b6d2708cba027e4b60953193b8ac19"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/model/comunicacao/PesquisaComunicacao.java",
+    "sha256": "4081979c3904f0047bd07fc154eeb6a7f4c4c225cd076e7629627da9c16eb383"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/model/datajud/CacheConsultaDataJud.java",
+    "sha256": "9d0b7c2e8800abf921f37be710b921e87495d176eb8c7615fd9b1816bee0f24f"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/model/datajud/ControleDataJud.java",
+    "sha256": "0cf2a4c6c006e74fcceb50051b157816d01260f1243abb825fc77a9969fe0dd2"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/model/datajud/DataJud.java",
+    "sha256": "099b4176afb58ecd310a180a6cb99b7fb17c8793c2cb678abc96ca93874e276c"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/model/datajud/SolicitacaoEstatistica.java",
+    "sha256": "94ef4218c2b0cfaceba744d9b72d32f240fb4cdb907495b6ec77bdca7a8bd22b"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/model/datajud/TempoEstatistica.java",
+    "sha256": "95dc99cefad350a34e513f6ecea09f69a0f11e94b9fbc61fcdbd914ced54ad2f"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/model/processo/Assunto.java",
+    "sha256": "54cd1a0a2c8e7892c8908b40fc8c48bc29bdeec6877707e205c66caf555aa326"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/model/processo/ClasseProcessual.java",
+    "sha256": "faf51996da686daa4f21c8dfe8191f14287f7458d376f7b29493f48de4db3dce"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/model/processo/OrgaoJulgador.java",
+    "sha256": "d46ddba139e0322c1781ad0bddf0bb9298d30d81ef87d9f6b390be0ddfb7c48b"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/model/processo/Processo.java",
+    "sha256": "82b7f23bdc8401fabfd543d1b498b71eb8f2540a83a27544667a1cccd8e21a38"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/model/usuario/Role.java",
+    "sha256": "e45ca0777afc1738d61fd0e1345bbb20899b08211b729319ef777d2929cbd414"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/model/usuario/TokenRevogado.java",
+    "sha256": "832de4ccb0c4ce69edd050f260d2618690c8d29c69ca4438e9b7e5a1e0f36c36"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/model/usuario/Usuario.java",
+    "sha256": "a6ad1a6731f6ffdaae3180e6b41c54bbd0d83ff0409874c279df96a541693f76"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/repository/ComunicacaoRepository.java",
+    "sha256": "5786a0071895aa2de3bd008faa2849db7a8b3de71f926a1e9fadddf731875034"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/repository/DataJudRepository.java",
+    "sha256": "be956eb8f73c13e07ebaff4f2e80581eb951adf4c22dfc357712235ea2c7867a"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/repository/PesquisaComunicacaoRepository.java",
+    "sha256": "8682a0da1e6fe074899f708e02eae8c4d04c836bdc4731970edcc97f148e8ed0"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/repository/ProcessoRepository.java",
+    "sha256": "ed365ab1efb4919f4bfb21f6d2f3804b3f151e18ce063e4c8f4d9aaaa2f70b75"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/repository/TokenRevogadoRepository.java",
+    "sha256": "b85d74f68513601407c471ce8bdbec30192ca3c6dc3b263ced403c10d1a7f610"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/repository/UsuarioRepository.java",
+    "sha256": "132a041d72afef4e0f01b434fcdd5bd3e442c2b7a178fb0e18735c2b829260f3"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/security/CustomUserDetailsService.java",
+    "sha256": "f44212e28a3448200278a7526fc9cad15e64436f11f1ac635b1b73df5af38c58"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/security/JwtAuthenticationFilter.java",
+    "sha256": "cddffef8450264eb609fa0e5a9285415838f82a593832e5219bac7126fa575ea"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/security/JwtService.java",
+    "sha256": "ab2fef0c7034813d0e85b491c57e2c6e84a7e207538243b6fcfed8c3464eeddc"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/security/SecurityConfig.java",
+    "sha256": "dfc0c95ad10902440db2fb31972a29ac40a89f273a85ba39fa3e463be6e1294d"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/security/SecurityErrorHandler.java",
+    "sha256": "f3796a25e27d574f268aa11ab543c311192955a371c6b367be3225d99ace4d09"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/AnaliseComunicacaoService.java",
+    "sha256": "1ae312f9432f75a9dfaa8260ca0f0edcafc98623a75d4ca0d78e8ffb4c009919"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/AnaliseService.java",
+    "sha256": "095d9a1540787e5572f42c6bded31f64a8a6da1db518538b1a495e0eeb58fa32"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/AuthService.java",
+    "sha256": "e8d464216c94d4c1baa865a7dceb7bb2b020fbfe5344a82dca7f78f99fdca3ed"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/ComunicacaoService.java",
+    "sha256": "72b8537faa530875b988aee684dde35586d2043c703845c57e54602e42c2c5bb"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/ConsultaCnjService.java",
+    "sha256": "712e7caff6af43b3b4244391fe97ba8ceafc06904d7b4a95db03a0fcb77df94b"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/DashboardService.java",
+    "sha256": "30a7078b410641892a0b5b573fec437a8c01fa747775d2b531b9e5534ab43961"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/DataJudAcessoService.java",
+    "sha256": "69568362aca6a3c42106140b53d025e00d60060238b9264a9ed036834bea31d4"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/DataJudService.java",
+    "sha256": "274cdc208e29c05bb1d6926dbdfc03f37b2536364e934038761526e6227cecab"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/EstatisticaProcessualService.java",
+    "sha256": "eba2c696b04db1c0f35b8f3a0a2958212e01f94b5cf77a05c8a1151c1afec81b"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/ExecucaoAnaliseService.java",
+    "sha256": "6e8d3d99fc7149cd5ad598dfa62bd4d0fece46f6daee18416a80b534c8c09fc0"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/GeminiService.java",
+    "sha256": "de006cdc7692b7574dece5de056ef02a0d11025ccc77e5b874ca67a2728683e2"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/GeracaoEstatisticaService.java",
+    "sha256": "eb26eae57fad2b09719d0ee3ddc96deca86ea69011f9faea85cf6fc672954cba"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/LLMService.java",
+    "sha256": "e0fb3421ab871336ff81af34ca77fc55239e29669e40f602e70c9058fbbb83c1"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/NumeroCnj.java",
+    "sha256": "c9dcdd3a9d92593a684a7d4af43a2a18bed2318931db3336c1c6994df4812fab"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/PesquisaPublicacoesService.java",
+    "sha256": "ba06418435e3706aaae0867779c12468832aa0742ec242d66a36936399afcf4d"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/ProcessoService.java",
+    "sha256": "627cb492095abc349b410ec25d207421a46fb45ad884c4bf8cd8a6f72f16ce76"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/SinteseComunicacaoService.java",
+    "sha256": "cc40f62040b218df5121bc6fb9558bdb114ac029ae0c5d7ab61b378f6fefe502"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/SinteseDataJudService.java",
+    "sha256": "f2a776d99e9d6f445731c41f41b07cf2eae43ce8826bcfcca1f451c378aafdec"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/TextoComunicacao.java",
+    "sha256": "99784fa370c72b9439db90d61ede1efe5179abcab07487ef5e3689568bcb6812"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/UsuarioAutenticadoService.java",
+    "sha256": "52a2c2f05f6fc0ea4d39ac7bbdfc01c74143d4ba4408c9e33aab9324666cd962"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/UsuarioService.java",
+    "sha256": "6384f2d676fd23b4d8393e0d463cade7549a79da9410aeed9fbe11d2b4e85b38"
+  },
+  {
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/ValidadorSinteseDataJud.java",
+    "sha256": "75b2ecd95b3ce0961068e69370ea1eb4168504555a44bbf851e99c17a2693cbb"
+  },
+  {
+    "arquivo": "backend/src/main/resources/application-dev.properties",
+    "sha256": "557ff8d614272dabe8d0210915756e8737026191c967995551edf39a76569d1f"
+  },
+  {
+    "arquivo": "backend/src/main/resources/application-mysql.properties",
+    "sha256": "08128acec7a0f6fa75fa010c89b76b79e7837daaeabc0e24c1ea3a51450af4e2"
+  },
+  {
+    "arquivo": "backend/src/main/resources/application.properties",
+    "sha256": "e10397ac0011d4f9cfb46c156746fec4d06aa56e6a510756de46f46fd90610ea"
+  },
+  {
+    "arquivo": "frontend/src/App.tsx",
+    "sha256": "6bf139f622ee4e37fc3e702d692bc036bf913f8e045a418efeaaf7ddb0fdeca4"
+  },
+  {
+    "arquivo": "frontend/src/assets/auth-reference.png",
+    "sha256": "91d67d35b0a7144f73a9b0d5e04de005eda4cc72776e05f8f3663f2b4121830e"
+  },
+  {
+    "arquivo": "frontend/src/components/forms/Input.tsx",
+    "sha256": "5cab3dc68487037454f342461954d3dfdb6661b5b45e6706a9d6050f3538793e"
+  },
+  {
+    "arquivo": "frontend/src/components/forms/Select.tsx",
+    "sha256": "ef9ef5d6a994d91a4a5193b27a472e74ea813e13d2df55b9da3130e62c08d787"
+  },
+  {
+    "arquivo": "frontend/src/components/forms/validation.ts",
+    "sha256": "d457a22e0f14318d3cc2303e27ce851d9ec515014cd1a59bc4f244d70b1be82a"
+  },
+  {
+    "arquivo": "frontend/src/components/layout/AppLayout.css",
+    "sha256": "14354819052d03d6dc93e3c6b5a7545e2632ef26627ac6f11d6cf63d07457592"
+  },
+  {
+    "arquivo": "frontend/src/components/layout/AppLayout.tsx",
+    "sha256": "59a2ab382a3e8388b9b30bdf4bed942ea567b184256782773928a1d0b794e598"
+  },
+  {
+    "arquivo": "frontend/src/components/layout/AuthLayout.css",
+    "sha256": "3a62d3071599fb74d043803fcbf3344f63ad9cebe8739ee7f77d034a550e8487"
+  },
+  {
+    "arquivo": "frontend/src/components/layout/AuthLayout.tsx",
+    "sha256": "26bde28afa004edce3654707d2e93515c7f1ff647fb8f57b5107cee9755d1691"
+  },
+  {
+    "arquivo": "frontend/src/components/layout/Header.tsx",
+    "sha256": "ee2082be336bf4df5cbe24dc93134984b4bd421f4ecfc1b4f359d45e3f161d55"
+  },
+  {
+    "arquivo": "frontend/src/components/layout/Sidebar.tsx",
+    "sha256": "b3e58c2148fe406d4bd13ef5c10aa21ce25147d786a474fe15bb80edcb976c4e"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/ConsultaCnj.tsx",
+    "sha256": "32ba9f786cf0427d1d37168ea10ad6f96d92648736dd1e4d91f738c070abdfea"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/AISummaryCard.tsx",
+    "sha256": "eaba3419532842052b127613065bffbc3e66481e8e9ea4b7fa9d129127529e26"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/AnaliseComunicacoesCard.tsx",
+    "sha256": "a15d9938662d66a0423feaaa14cc28bffc5c4c4b89b9283c76836f936a0aba87"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/AnaliseComunicacoesResultado.tsx",
+    "sha256": "989af9b33a6320c02af13cbe2e3ee37d387b51912eed89fcf4e0cca5b3634ba7"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/ComunicacaoDetailsModal.tsx",
+    "sha256": "32b279194250bd63873e6f81fbe210dd151861204982237c03567312e792a46e"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/ComunicacoesTab.tsx",
+    "sha256": "1cf866ad53dce4fc37aa309f87f5bafb5a7fc202c225f920d1dd05b648a929c0"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/ComunicacoesTable.tsx",
+    "sha256": "1c7f0d60ab532c9172ad58d597151eb31330e767c071bcbf834e4815870b1a65"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/DataJudTab.tsx",
+    "sha256": "a1df16a5818e3ff22872e5224c2e659d7ca0db9e2e2cfe10f8efe90f51cbf2a8"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/EstatisticaCard.tsx",
+    "sha256": "63c68fc7aea1e4ef291bbdfe2a84ded20682acafb982ee9b6409f2b6d6aa516c"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/formatacao.ts",
+    "sha256": "81053caa44939a3eb1eadf67aef82b53aaabe4a38a7eb08e0df669bca72e2f8e"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/HistoricoSinteses.tsx",
+    "sha256": "57a3ec9a6e4fac1157e8da9714631e6e040eced00a838e4975de0f3dbe4389bb"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/HistoricoSintesesComunicacoes.tsx",
+    "sha256": "b86a48afa98dd1745344fd7361631109e234cf72cbd70eaac0de6e4d3e16eb6a"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/InformacoesGeraisTab.tsx",
+    "sha256": "37b35dc4472e319884c9e9460282140ae9ed75687678db94e9e604efb6951be2"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/PesquisaPublicacoesCard.tsx",
+    "sha256": "28e3fa9341c881c12ec6459408f8c2bb467b93633d978548b23cdf4d9a10ed9d"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/ProcessHeader.tsx",
+    "sha256": "1dfd9895f2471849e522e8fad4e88e140f9038e45886cdd6f0c2bce30727be42"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/detalhes/ProcessTabs.tsx",
+    "sha256": "b67fcce43774a28c22bb83927414ff1b383226a07cbc64da568d944e30c551ae"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/ExcluirProcessoModal.tsx",
+    "sha256": "84d24b446a6108d2df5034f468db62c1870c77d6a4b21281d6d7154e4eb6711d"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/Pagination.tsx",
+    "sha256": "f67f3d3ae6e1db2a0a856f9d0d443ba9a238ce0cd31a09ee3f93f7e806638ecf"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/preenchimentoCnj.ts",
+    "sha256": "89e5cd9815b5ff0d27a1241e224997a82a075bf5c5438e4913348851a76deac5"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/ProcessoFeedback.tsx",
+    "sha256": "f41eedace335cb7d98e4456890467965ccd8a39f3b6e16a3abe22a13f7026393"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/ProcessoForm.tsx",
+    "sha256": "089d0ae3b232ec6ca8e12a5f2fa0f61af68a8d0b590177e417f35596d9c5aac0"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/processoFormModel.ts",
+    "sha256": "d898fad58b9e5e6a190a787bbae889d9ae4f7226d7fc29b091e0ee196dcafcc0"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/ProcessoPageHeader.tsx",
+    "sha256": "4aa56a3cb0fa288b3b8f46e988e11e9d42b421963ea8cf29b27d655b38980f59"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/ProcessoTable.tsx",
+    "sha256": "fee7d8e53e37a3021673107d0c875f754faa048e564deb4cd3936fe8372100f0"
+  },
+  {
+    "arquivo": "frontend/src/components/processos/ProcessStatusBadge.tsx",
+    "sha256": "00300984b6c79fa6bea02c6efeefe816590866c752d82a0716d9ef763f7ab29b"
+  },
+  {
+    "arquivo": "frontend/src/components/ui/Button.tsx",
+    "sha256": "65791eb0ec2ca0be341a10774d98cadb8186e01c02f8bc3fe953abbb162b142d"
+  },
+  {
+    "arquivo": "frontend/src/components/ui/Icon.tsx",
+    "sha256": "89e759a4ad7c635d75523c2e9fb2bcb62f89933d1f8d42b9e6c3a5acf15b76db"
+  },
+  {
+    "arquivo": "frontend/src/contexts/AuthContext.tsx",
+    "sha256": "2234a05f2c68b30dfbf9450d8a98e23e03f2d3819162514c8b09f433477e4cb7"
+  },
+  {
+    "arquivo": "frontend/src/main.tsx",
+    "sha256": "267e42c79588da0c1c2c4791fe76c8db7702c4e5fa86baf60e63d447951069d4"
+  },
+  {
+    "arquivo": "frontend/src/mocks/dashboard.ts",
+    "sha256": "a9378b8a859d8c2f371cc877b51087abb92b078f714336bcda3dfeb1e08eb9b9"
+  },
+  {
+    "arquivo": "frontend/src/pages/Cadastro/Cadastro.css",
+    "sha256": "716923e50c072286b95b36a8e85ce8084c94a4481c94f5b9030d77c65f42c224"
+  },
+  {
+    "arquivo": "frontend/src/pages/Cadastro/Cadastro.tsx",
+    "sha256": "bdbae49663db861559b89bc15922b2a06fed6c95c8ffb066da4ba5b71a4b5800"
+  },
+  {
+    "arquivo": "frontend/src/pages/Dashboard/Dashboard.css",
+    "sha256": "8cf2171fff38b2babd0b073d427fa39e441140070feb98877b1d1ec859323c49"
+  },
+  {
+    "arquivo": "frontend/src/pages/Dashboard/Dashboard.tsx",
+    "sha256": "eacc128819ca19062e9649757d44bb7e0032fb56a85d3292c72a653889f73f6e"
+  },
+  {
+    "arquivo": "frontend/src/pages/Login/Login.css",
+    "sha256": "9091032e9637a368eb0e0c7f435790b75149882f3e242dee14aea72118ef6428"
+  },
+  {
+    "arquivo": "frontend/src/pages/Login/Login.tsx",
+    "sha256": "77a41c4ded23867b5954e585b90d6de09bd50990833dbd9310fd1d1169f12980"
+  },
+  {
+    "arquivo": "frontend/src/pages/NaoEncontrada.tsx",
+    "sha256": "a7a1d50a7377e93f576e4caeb63dea25384c1c3e2a6c7a8ef459819758fddf7e"
+  },
+  {
+    "arquivo": "frontend/src/pages/Processos/EditarProcesso.tsx",
+    "sha256": "0653a8dac5feb79e0441e80099274a2abde983365844a8a58635d447e42504e5"
+  },
+  {
+    "arquivo": "frontend/src/pages/Processos/NovoProcesso.tsx",
+    "sha256": "0da9035d413d01d8ffb8aa6a2397d592e0111dd3254d0ef0b8910424ba009300"
+  },
+  {
+    "arquivo": "frontend/src/pages/Processos/ProcessoDetalhes.css",
+    "sha256": "f6faff077c886485a9823bc95b87a1c4219801addd1077235b63a8c16bd54235"
+  },
+  {
+    "arquivo": "frontend/src/pages/Processos/ProcessoDetalhes.tsx",
+    "sha256": "ef4b6902075b49d47eeca9217c60726d5a758042aa6dda7654a31137415325fe"
+  },
+  {
+    "arquivo": "frontend/src/pages/Processos/Processos.css",
+    "sha256": "b5def623ca503cf566f798153f6c1c0a70788581aae8611affc9af266d84b14d"
+  },
+  {
+    "arquivo": "frontend/src/pages/Processos/Processos.tsx",
+    "sha256": "c2a1e331855bd4d8481c04cc895356fa312a4bdc47f1ee091cc732d913490b1e"
+  },
+  {
+    "arquivo": "frontend/src/pages/Processos/useDadosProcesso.ts",
+    "sha256": "395a5083dfef449a30858325faeaecb3e06c220b730340e229673b91747ff839"
+  },
+  {
+    "arquivo": "frontend/src/routes/ProtectedRoute.tsx",
+    "sha256": "b4974f18f6bd8a6d612d6d854c334910b91248a95b82db1678df080538ccdc9b"
+  },
+  {
+    "arquivo": "frontend/src/services/api.ts",
+    "sha256": "d5b811eba8e1fae0fa42a19148a8adccb376e43d86efd26b86627ec9ad98f0b2"
+  },
+  {
+    "arquivo": "frontend/src/services/authService.ts",
+    "sha256": "27fa4f0d3cf0813e8b5e6dd3a398a0f8ee211e4dc072887d481c521f8ca1473f"
+  },
+  {
+    "arquivo": "frontend/src/services/dashboardService.ts",
+    "sha256": "a7d7ddbeed41477e154acdb5f338d4e4d1dcb7fff5085338e3d0c0b2fca528dc"
+  },
+  {
+    "arquivo": "frontend/src/services/processoService.ts",
+    "sha256": "b18f0453b40b8649654c070f032bd5992c0a01f0e861b676258fdc53b9823eb3"
+  },
+  {
+    "arquivo": "frontend/src/styles/globals.css",
+    "sha256": "b78fd9c4f0e842502dc31052b0eba5e26834014ba8795753d9228b12e393a7ae"
+  },
+  {
+    "arquivo": "frontend/src/styles/theme.css",
+    "sha256": "eaeb7dfd793b222734c23e04a0a2337580dd9de076637bf76b123222e5e162ae"
+  },
+  {
+    "arquivo": "frontend/src/types/analiseComunicacao.ts",
+    "sha256": "ff1a621db87f42e41d320cfcf8d72b98f1e886e46a2ca5b1664ea5b3e401d4a8"
+  },
+  {
+    "arquivo": "frontend/src/types/auth.ts",
+    "sha256": "268ab714170e525fe891829a0ef1032a99ade17b9876bc581e36d4f7f711c215"
+  },
+  {
+    "arquivo": "frontend/src/types/comunicacao.ts",
+    "sha256": "b01922ede44f3e49d53ce5a6fdfcb359c85edf388f5caf9742d210d4090a5544"
+  },
+  {
+    "arquivo": "frontend/src/types/dashboard.ts",
+    "sha256": "0088449ddfdfcd4bbe230c226fdec039ffec07d105d791ef5f64efe5efa35cad"
+  },
+  {
+    "arquivo": "frontend/src/types/estatisticas.ts",
+    "sha256": "d7884d3b451eca177db84cefed25aeab1ac16059b469f6f9e8670739a245adad"
+  },
+  {
+    "arquivo": "frontend/src/types/processo.ts",
+    "sha256": "86595f06e3209e5ea6e02973f1e894d798d7789b05e37b57b8f1158803538c4b"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/BackendApplicationTests.java",
+    "sha256": "b5f16be1997f43d4d311b5da5839543c2a1ece4194eb17aaa566a6c63ffcedb4"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/security/AutenticacaoIsolamentoIntegrationTests.java",
+    "sha256": "00fa1b76865703a3bfeee53548b49478e71133788565a714413373b325b8ccbe"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/security/H2AcessoLocalIntegrationTests.java",
+    "sha256": "a9a502f817a8b1fa785efc3fa6f593f621d86ab3a45cc05a5573674f3c2d7537"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/service/AnaliseComunicacaoIntegrationTests.java",
+    "sha256": "925576bf17f0e74db89d77bbd1ff9ec3a94a9d76f3058424f909f862818d668f"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/service/AnaliseConsultasHttpIntegrationTests.java",
+    "sha256": "78b9425dd326c1c3b43fffc4ac76b1be213083ffac60cb34709e118b46f29fb8"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/service/AnaliseProcessoIntegrationTests.java",
+    "sha256": "469a1e1fe9fbab2477a31d370e94552fe72d668d35d4fb556129841a115ffb90"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/service/ComunicacaoContratoTccTests.java",
+    "sha256": "d24076f8b459a302e5a0090772bc7bd13aa41402e1c3f325c8a012b8bebcb10b"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/service/ConsultaCnjIntegrationTests.java",
+    "sha256": "47e5a7acc62dee8fd3e7d21f826cabc159cca2c166706df1e6bcfe1284ac1355"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/service/ConsultaDataJudTests.java",
+    "sha256": "8c796f22323ea1737efe61ab024b85039498f09df43bdfbbb2c1c3a5de0d8fff"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/service/DashboardIntegrationTests.java",
+    "sha256": "0842efc9866d345f0098a2bfbf68395780d2dcb076a0750d502ebf5b72ada938"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/service/DataJudFilaHttpIntegrationTests.java",
+    "sha256": "0849d51e3aa2f8e26f71a142d516e97a8fa24d8e2c04ffc8e41a3f3e27c5e2ec"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/service/EstatisticaProcessualServiceTests.java",
+    "sha256": "9cad41e210124112749154d3b8b8699868b29a92ede6ed3eb594d64d46a88ae3"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/service/MigracaoSintesesTests.java",
+    "sha256": "dd42a8bbad9692bd0763a838a3069f08c15cbda530dbfb30e1ad44248ad808c4"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/service/NumeroCnjTests.java",
+    "sha256": "36ecb06aa023abf60beb092a7e7418607b6f9c128b95739b3f90c9773d5a42b9"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/service/SinteseDataJudIntegrationTests.java",
+    "sha256": "a11636b8892332a34ec06faccdda9011b851dc9ecf40d57d5811ecbb7633126c"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/service/TextoComunicacaoTests.java",
+    "sha256": "67772ba3a292a9dfc1fa59a72d5dcb57d4285b5f3ae20a335045d097227fa3f7"
+  },
+  {
+    "arquivo": "backend/src/test/java/br/com/axionweb/backend/service/ValidadorSinteseDataJudTests.java",
+    "sha256": "cf5fe6b8d9ad30c49ca9ff867fa8cfdc79cc3677025aebf62ad155ec6b109bfd"
+  },
+  {
+    "arquivo": "frontend/scripts/browser-check.mjs",
+    "sha256": "34a77266a11ab83fb5386ec8c2ad2f6fc5232fc5ea80809e34506cce7ac1e43f"
+  },
+  {
+    "arquivo": "frontend/scripts/cnj-scenarios.mjs",
+    "sha256": "2f1d96939350ee2d1de69b6d39b122810911ce5c2bcf7e7f906b97087aa0cf30"
+  },
+  {
+    "arquivo": "frontend/scripts/comunicacoes-http-scenario.mjs",
+    "sha256": "5f93b1c7f5eea3c3a84b485713aee44e6ea668fd55872131de1f65fd48e45828"
+  },
+  {
+    "arquivo": "frontend/scripts/datajud-fila-scenario.mjs",
+    "sha256": "52d3888e4f24501cba38e613e384e5aaadadd535a30ce24eaa4203a3b6809b79"
+  },
+  {
+    "arquivo": "frontend/scripts/datajud-http-scenario.mjs",
+    "sha256": "2ba56783cc4a67aef3ee0b750738a9b242d49833e9f783fc275079d7fa7b2594"
+  },
+  {
+    "arquivo": "frontend/scripts/detalhes-fixtures.mjs",
+    "sha256": "0baf127cd924aee3fa99bf465c4abba044eaee03895ef604912870b53a811a17"
+  },
+  {
+    "arquivo": "frontend/scripts/detalhes-scenarios.mjs",
+    "sha256": "c1d6b0286693a92f5086697c1f3d627de904cc63c3e7d8aae9e822209d1b8559"
+  },
+  {
+    "arquivo": "frontend/scripts/exclusao-scenarios.mjs",
+    "sha256": "189b2338cfac029d19bfc481c035cacc5b280ea03ce355f4354e0085cae70de9"
+  },
+  {
+    "arquivo": "frontend/scripts/processos-scenarios.mjs",
+    "sha256": "acfa15a91ecde9422cc2724f84408c015217a04dd364bb52d3095b4c5f227792"
+  },
+  {
+    "arquivo": "frontend/scripts/seguranca-tcc.test.mjs",
+    "sha256": "13f32cbfcec717e27e1089b957915d3f3e24c16385d17315f8cab8f45c89df94"
+  },
+  {
+    "arquivo": "backend/pom.xml",
+    "sha256": "227a83dd072e176ba96e294322e859e5b295ac5239ccc65c96235b0a310a3aca"
+  },
+  {
+    "arquivo": "frontend/package-lock.json",
+    "sha256": "9c1638cc24111753eab36561141ea0e2f730577526f25442838e177393baf219"
+  }
+]

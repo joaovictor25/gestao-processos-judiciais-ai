@@ -1,0 +1,90 @@
+{
+  "requisitos": 12,
+  "matriz": {
+    "planejados": 385,
+    "executados": 370,
+    "aprovados": 367,
+    "reprovados": 3,
+    "naoExecutados": 15
+  },
+  "backendBaseline": {
+    "total": 312,
+    "aprovados": 312
+  },
+  "backendFinal": {
+    "total": 322,
+    "aprovados": 321,
+    "reprovados": 1
+  },
+  "browserCheckpointsUnicos": 44,
+  "frontendSeguranca": 2,
+  "inspecoesEstaticas": 2,
+  "corpusIA": 11,
+  "respostasGeminiReais": 0,
+  "avaliacoesHumanas": 0,
+  "porGrupoPrincipal": {
+    "0": {
+      "planejados": 7,
+      "executados": 6,
+      "aprovados": 6,
+      "reprovados": 0,
+      "naoExecutados": 1
+    },
+    "1": {
+      "planejados": 75,
+      "executados": 75,
+      "aprovados": 74,
+      "reprovados": 1,
+      "naoExecutados": 0
+    },
+    "2": {
+      "planejados": 30,
+      "executados": 30,
+      "aprovados": 30,
+      "reprovados": 0,
+      "naoExecutados": 0
+    },
+    "3": {
+      "planejados": 128,
+      "executados": 127,
+      "aprovados": 127,
+      "reprovados": 0,
+      "naoExecutados": 1
+    },
+    "4": {
+      "planejados": 17,
+      "executados": 17,
+      "aprovados": 17,
+      "reprovados": 0,
+      "naoExecutados": 0
+    },
+    "5": {
+      "planejados": 45,
+      "executados": 44,
+      "aprovados": 42,
+      "reprovados": 2,
+      "naoExecutados": 1
+    },
+    "6": {
+      "planejados": 18,
+      "executados": 12,
+      "aprovados": 12,
+      "reprovados": 0,
+      "naoExecutados": 6
+    },
+    "7": {
+      "planejados": 32,
+      "executados": 27,
+      "aprovados": 27,
+      "reprovados": 0,
+      "naoExecutados": 5
+    },
+    "8": {
+      "planejados": 33,
+      "executados": 32,
+      "aprovados": 32,
+      "reprovados": 0,
+      "naoExecutados": 1
+    }
+  }
+}

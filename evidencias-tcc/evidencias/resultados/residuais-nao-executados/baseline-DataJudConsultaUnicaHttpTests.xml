@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="br.com.axionweb.backend.service.DataJudConsultaUnicaHttpTests" time="0.169" tests="7" errors="0" skipped="0" failures="0" flakes="0">
+  <testcase name="consulta400UmaVezMesmoQuandoHaDescartePorData(boolean)[1]" classname="br.com.axionweb.backend.service.DataJudConsultaUnicaHttpTests" time="0.099">
+    <system-out><![CDATA[2026-11-03T23:59:45.465-03:00  INFO 1580 --- [backend] [           main] b.c.a.backend.service.DataJudService     : Consulta DataJud recebida: endpoint=/api_publica_tjpr/_search, tamanho=400, duracaoMs=73
+2026-11-03T23:59:45.466-03:00  INFO 1580 --- [backend] [           main] b.c.a.backend.service.DataJudService     : Amostra DataJud validada: endpoint=/api_publica_tjpr/_search, solicitados=400, recebidos=400, aceitos=400
+]]></system-out>
+  </testcase>
+  <testcase name="consulta400UmaVezMesmoQuandoHaDescartePorData(boolean)[2]" classname="br.com.axionweb.backend.service.DataJudConsultaUnicaHttpTests" time="0.015">
+    <system-out><![CDATA[2026-11-03T23:59:45.485-03:00  INFO 1580 --- [backend] [           main] b.c.a.backend.service.DataJudService     : Consulta DataJud recebida: endpoint=/api_publica_tjpr/_search, tamanho=400, duracaoMs=6
+2026-11-03T23:59:45.488-03:00  INFO 1580 --- [backend] [           main] b.c.a.backend.service.DataJudService     : Amostra DataJud validada: endpoint=/api_publica_tjpr/_search, solicitados=400, recebidos=400, aceitos=399
+]]></system-out>
+  </testcase>
+  <testcase name="clienteRealNaoRepeteChamadaEmFalha(int)[1]" classname="br.com.axionweb.backend.service.DataJudConsultaUnicaHttpTests" time="0.01">
+    <system-out><![CDATA[2026-11-03T23:59:45.499-03:00  WARN 1580 --- [backend] [           main] b.c.a.backend.service.DataJudService     : Consulta DataJud falhou: endpoint=/api_publica_tjpr/_search, httpExterno=429, tipo=TooManyRequests, duracaoMs=4
+]]></system-out>
+  </testcase>
+  <testcase name="clienteRealNaoRepeteChamadaEmFalha(int)[2]" classname="br.com.axionweb.backend.service.DataJudConsultaUnicaHttpTests" time="0.01">
+    <system-out><![CDATA[2026-11-03T23:59:45.509-03:00  WARN 1580 --- [backend] [           main] b.c.a.backend.service.DataJudService     : Consulta DataJud falhou: endpoint=/api_publica_tjpr/_search, httpExterno=500, tipo=InternalServerError, duracaoMs=3
+]]></system-out>
+  </testcase>
+  <testcase name="clienteRealNaoRepeteChamadaEmFalha(int)[3]" classname="br.com.axionweb.backend.service.DataJudConsultaUnicaHttpTests" time="0.011">
+    <system-out><![CDATA[2026-11-03T23:59:45.520-03:00  WARN 1580 --- [backend] [           main] b.c.a.backend.service.DataJudService     : Consulta DataJud falhou: endpoint=/api_publica_tjpr/_search, httpExterno=502, tipo=BadGateway, duracaoMs=4
+]]></system-out>
+  </testcase>
+  <testcase name="clienteRealNaoRepeteChamadaEmFalha(int)[4]" classname="br.com.axionweb.backend.service.DataJudConsultaUnicaHttpTests" time="0.01">
+    <system-out><![CDATA[2026-11-03T23:59:45.531-03:00  WARN 1580 --- [backend] [           main] b.c.a.backend.service.DataJudService     : Consulta DataJud falhou: endpoint=/api_publica_tjpr/_search, httpExterno=503, tipo=ServiceUnavailable, duracaoMs=3
+]]></system-out>
+  </testcase>
+  <testcase name="clienteRealNaoRepeteChamadaEmFalha(int)[5]" classname="br.com.axionweb.backend.service.DataJudConsultaUnicaHttpTests" time="0.011">
+    <system-out><![CDATA[2026-11-03T23:59:45.542-03:00  WARN 1580 --- [backend] [           main] b.c.a.backend.service.DataJudService     : Consulta DataJud falhou: endpoint=/api_publica_tjpr/_search, httpExterno=504, tipo=GatewayTimeout, duracaoMs=5
+]]></system-out>
+  </testcase>
+</testsuite>

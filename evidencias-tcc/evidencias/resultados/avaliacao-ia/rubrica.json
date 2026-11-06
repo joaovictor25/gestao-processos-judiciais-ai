@@ -1,0 +1,27 @@
+{
+  "escala": {
+    "0": "Não atende: contradição, invenção ou ausência essencial; justificar por trecho.",
+    "1": "Atende parcialmente: falha delimitada sem contradição central; citar trecho e omissão.",
+    "2": "Atende: todas as informações essenciais conferidas e nenhuma divergência observada; citar fontes e resposta."
+  },
+  "criteriosComunicacoes": [
+    "Fidelidade",
+    "Ausência de informações sem suporte",
+    "Completude",
+    "Clareza e organização",
+    "Rastreabilidade",
+    "Reconhecimento de informação insuficiente"
+  ],
+  "criteriosEstatisticas": [
+    "Preservação numérica e associação aos marcos",
+    "Explicação da mediana",
+    "Interpretação de contagens e ausência de baixa",
+    "Limitações da amostra",
+    "Ausência de previsão/invenção",
+    "Clareza"
+  ],
+  "protocolo": "Congelar corpus/prompts antes da geração. Uma resposta inicial por caso; registrar modelo efetivamente retornado, request sem credenciais, horário, resposta bruta, finishReason e erros. Não selecionar apenas tentativas boas. Para qualidade, duas pessoas podem pontuar independentemente e registrar divergências; nenhuma avaliação humana foi realizada nesta tarefa. N/A só com justificativa. Casos de erro não recebem zero de qualidade: são falhas técnicas separadas.",
+  "aprovacaoProposta": "Cada critério aplicável >=1 e critérios fidelidade/ausência de invenção/preservação numérica =2. Justificativa textual obrigatória. Correção jurídica requer revisão competente, não apenas coerência.",
+  "agregacaoFutura": "Por critério, média = soma das notas / avaliações válidas; divulgar denominador, N/A, falhas de geração e divergências. Não calcular métricas quando não houver respostas avaliadas.",
+  "limites": "Citação literal demonstra presença na fonte, não que a conclusão seja sustentada. Verificador numérico não garante completude, correção jurídica ou ausência de toda paráfrase indevida."
+}

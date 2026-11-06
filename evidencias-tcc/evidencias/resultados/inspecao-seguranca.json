@@ -1,0 +1,24 @@
+[
+  {
+    "id": "S01",
+    "requisito": "RNF02",
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/service/GeminiService.java",
+    "linha": 61,
+    "descricao": "Fallback literal de credencial Gemini",
+    "esperado": "Segredo configurável sem credencial embutida",
+    "proposta": "Remover fallback; exigir variável de ambiente; responsável deve avaliar rotação.",
+    "encontrado": true,
+    "tipo": "inspeção estática automatizada; não testa validade de credenciais nem duração de timeout"
+  },
+  {
+    "id": "S02",
+    "requisito": "RF05",
+    "arquivo": "backend/src/main/java/br/com/axionweb/backend/config/RestComunicacaoConfig.java",
+    "linha": 15,
+    "descricao": "Cliente DJEN sem timeout explícito",
+    "esperado": "Limites de conexão/leitura explícitos para integração externa",
+    "proposta": "Configurar request factory e limites; verificar transporte HTTP com atraso controlado.",
+    "encontrado": true,
+    "tipo": "inspeção estática automatizada; não testa validade de credenciais nem duração de timeout"
+  }
+]

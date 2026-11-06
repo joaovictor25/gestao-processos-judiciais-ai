@@ -1,0 +1,36 @@
+{
+  "checks": [
+    "Rota protegida redireciona visitante ao login",
+    "Validação local e foco no primeiro campo inválido",
+    "Cadastro real e confirmação de sucesso",
+    "Credenciais incorretas recebem mensagem segura",
+    "Login real e identidade fornecida pelo backend",
+    "Botão Excluir ao lado de Ver; confirmação responsiva; Cancelar e Escape não excluem e restauram o foco",
+    "Falha de conexão mantém o processo e permite tentar novamente",
+    "DELETE real com resposta vazia; uma requisição durante o carregamento; registro ausente após recarregar; contadores e última página atualizados",
+    "Exclusão com busca ativa remove somente o processo selecionado e preserva o filtro",
+    "Excluir o último processo exibe o estado vazio e zera os contadores"
+  ],
+  "exceptions": [],
+  "endpoints": [
+    "/api/auth/cadastro",
+    "/api/auth/login",
+    "/api/dashboard",
+    "/api/auth/me",
+    "/api/processo/listar-usuario",
+    "/api/dados/analise/39",
+    "/api/dados/analise/40",
+    "/api/dados/analise/41",
+    "/api/dados/analise/42",
+    "/api/dados/analise/43",
+    "/api/dados/analise/44",
+    "/api/dados/analise/45",
+    "/api/dados/analise/46",
+    "/api/dados/analise/47",
+    "/api/dados/analise/48",
+    "/api/dados/analise/49",
+    "/api/processo/deletar/49",
+    "/api/processo/deletar/40",
+    "/api/processo/deletar/39"
+  ]
+}

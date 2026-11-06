@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.034" tests="22" errors="0" skipped="0" failures="0" flakes="0">
+  <testcase name="aceitaEspacosUnicodeEQuebrasDeLinhaNaCitacao" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.002" />
+  <testcase name="aceitaDiferencasDePontuacaoSemAlterarPalavrasENumeros(String, String)[1]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.002" />
+  <testcase name="aceitaDiferencasDePontuacaoSemAlterarPalavrasENumeros(String, String)[2]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.002" />
+  <testcase name="aceitaDiferencasDePontuacaoSemAlterarPalavrasENumeros(String, String)[3]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.002" />
+  <testcase name="aceitaDiferencasDePontuacaoSemAlterarPalavrasENumeros(String, String)[4]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.002" />
+  <testcase name="aceitaDiferencasDePontuacaoSemAlterarPalavrasENumeros(String, String)[5]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.002" />
+  <testcase name="rejeitaMudancasDeConteudoECorrespondenciasParciais(String, String)[1]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.001" />
+  <testcase name="rejeitaMudancasDeConteudoECorrespondenciasParciais(String, String)[2]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.0" />
+  <testcase name="rejeitaMudancasDeConteudoECorrespondenciasParciais(String, String)[3]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.0" />
+  <testcase name="rejeitaMudancasDeConteudoECorrespondenciasParciais(String, String)[4]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.001" />
+  <testcase name="rejeitaMudancasDeConteudoECorrespondenciasParciais(String, String)[5]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.001" />
+  <testcase name="rejeitaMudancasDeConteudoECorrespondenciasParciais(String, String)[6]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.0" />
+  <testcase name="rejeitaMudancasDeConteudoECorrespondenciasParciais(String, String)[7]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.0" />
+  <testcase name="rejeitaMudancasDeConteudoECorrespondenciasParciais(String, String)[8]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.001" />
+  <testcase name="rejeitaMudancasDeConteudoECorrespondenciasParciais(String, String)[9]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.001" />
+  <testcase name="rejeitaMudancasDeConteudoECorrespondenciasParciais(String, String)[10]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.0" />
+  <testcase name="rejeitaMudancasDeConteudoECorrespondenciasParciais(String, String)[11]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.0" />
+  <testcase name="rejeitaMudancasDeConteudoECorrespondenciasParciais(String, String)[12]" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.0" />
+  <testcase name="extraiTextoVisivelSemMisturarTagsInlineOuPerderSeparacaoDeParagrafos" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.0" />
+  <testcase name="comparaAcentosUnicodeEquivalentesEEspacosInseparaveis" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.0" />
+  <testcase name="ignoraConteudoNaoVisivel" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.001" />
+  <testcase name="preservaNegacaoValoresEConteudoEscapadoAoConferirEvidencias" classname="br.com.axionweb.backend.service.TextoComunicacaoTests" time="0.001" />
+</testsuite>
