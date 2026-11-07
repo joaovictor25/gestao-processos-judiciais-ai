@@ -1,0 +1,16 @@
+# Evidências e relatórios locais do TCC
+/evidencias-tcc/
+/evidencias-tcc.zip
+/ANALISE_CONSUMO_DATAJUD.md
+/IMPLEMENTACAO_SINTESES_DATAJUD.md
+/REFATORACAO_DATAJUD.md
+/backend/DATAJUD_FILA.md
+
+# Configurações locais de editores
+/.idea/
+/.vscode/
+
+# Variáveis locais; somente exemplos devem ser versionados
+.env
+.env.*
+!.env.example

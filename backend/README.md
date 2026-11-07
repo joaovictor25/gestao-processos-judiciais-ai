@@ -18,6 +18,8 @@ Fora de desenvolvimento, defina explicitamente `SPRING_PROFILES_ACTIVE=prod`, co
 
 O console H2 em `/h2` é habilitado apenas no perfil `dev`, com acesso local sem autenticação da aplicação. As rotas privadas da API continuam exigindo JWT.
 
+Para iniciar backend e frontend a partir de um clone novo, consulte o [guia de execução na raiz](../README.md).
+
 ### Acessar o H2 pelo navegador
 
 Inicie o backend normalmente pela IDE ou pelo PowerShell, dentro de `backend`. O perfil padrão é `dev`:
@@ -203,7 +205,7 @@ A conferência das citações aceita diferenças de maiúsculas/minúsculas, esp
 
 O schema JSON enviado à API define a estrutura e os tipos das categorias. Os limites de até cinco itens por categoria e duas evidências por item são solicitados no prompt e conferidos pelo backend, sem limites de arrays aninhados no schema. Respostas interrompidas por `MAX_TOKENS` retornam `RESPOSTA_INCOMPLETA`; os demais motivos de rejeição são registrados no log sem os textos dos documentos.
 
-Configure a chave **no ambiente do processo backend** com `GEMINI_API_KEY`. Ela não deve entrar no repositório ou no frontend. O modelo padrão é `gemini-flash-latest`; `GEMINI_MODEL` e `GEMINI_BASE_URL` são opcionais. Sem chave, o endpoint retorna `503 / CONFIGURACAO_AUSENTE`. Falha externa, limite HTTP 429 e resposta sem evidências verificáveis recebem códigos específicos, sem corpo externo ou chave na resposta. A chamada usa `systemInstruction`, saída JSON e não habilita ferramentas ou busca externa, conforme a [referência oficial de generateContent](https://ai.google.dev/api/generate-content). O alias `gemini-flash-latest` pode mudar para outra versão do modelo; para fixar uma versão, configure `GEMINI_MODEL` com um [identificador específico](https://ai.google.dev/gemini-api/docs/models).
+Configure a chave **no ambiente do processo backend** com `GEMINI_API_KEY`. Ela não deve entrar no repositório ou no frontend. O modelo configurado em `application.properties` é `gemini-3.5-flash-lite`; `GEMINI_MODEL` e `GEMINI_BASE_URL` são opcionais. Sem chave, o endpoint retorna `503 / CONFIGURACAO_AUSENTE`. Falha externa, limite HTTP 429 e resposta sem evidências verificáveis recebem códigos específicos, sem corpo externo ou chave na resposta. A chamada usa `systemInstruction`, saída JSON e não habilita ferramentas ou busca externa, conforme a [referência oficial de generateContent](https://ai.google.dev/api/generate-content). Para selecionar outro modelo disponível na sua conta, configure `GEMINI_MODEL` com um [identificador específico](https://ai.google.dev/gemini-api/docs/models).
 
 ## Erros
 
@@ -284,3 +286,39 @@ Cada página admite até três tentativas em HTTP 502/503/504 ou falha de conex�
 Os testes de integração usam H2 separado e respostas simuladas somente para DataJud e Comunicação. Exercitam cadastro, hash de senha, login real, JWT, logout com bloqueio do token revogado, preservação de outros logins, novo login após sair, validação, isolamento entre contas, tentativas de alterar o proprietário pelo JSON, resultados e exclusão, além das transações e chaves estrangeiras. A chave do perfil `test` é exclusiva dos testes e não é distribuída nos recursos principais.
 
 A implementação de JWT utiliza os componentes Nimbus fornecidos pelo [Spring Security](https://docs.spring.io/spring-security/reference/servlet/oauth2/) e suas versões gerenciadas pelo Spring Boot, sem biblioteca JWT paralela.
+
+## Fila de consultas DataJud
+
+O botão Gerar estatística cria uma solicitação persistida. Cada tentativa consulta uma única resposta de até 400 processos, preservando tribunal, classe, grau e período. Não há paginação nem chamadas para repor registros descartados por data. O cálculo usa a quantidade válida efetivamente recebida. Respostas com timeout, shards com falha, registros repetidos ou estrutura inválida não são salvas nem entram no cache.
+
+### Contrato
+
+Todas as rotas exigem autenticação e propriedade do processo. Um processo de outra conta retorna 404 antes de consultar o provedor.
+
+| Método e rota | Resposta |
+| --- | --- |
+| `POST /api/dados/estatisticas/{id}/solicitacoes` | Corpo `{ "dataInicio": null, "dataFim": null }`. Retorna 202 e `Location` para acompanhar; 200 se reutilizou geração recente concluída. |
+| `GET /api/dados/estatisticas/{id}/solicitacoes/{uuid}` | Estado da solicitação e, quando concluída, `resultados` com a estatística salva. Não consulta o DataJud. |
+| `GET /api/dados/estatisticas/{id}/solicitacoes/atual` | Solicitação ativa do processo, ou 204. Permite retomar o acompanhamento ao recarregar ou voltar à aba. |
+
+O DTO contém `id`, `processoId`, `status`, `tentativas`, `proximaTentativa`, `codigoErro`, `dataInicio`, `dataFim` e `resultados`. Estados: `AGUARDANDO`, `CONSULTANDO`, `REAGENDADA`, `CONCLUIDA`, `FALHOU`. O snapshot dos parâmetros é fixado na submissão. A mesma solicitação ativa é reutilizada em cliques repetidos; filtros diferentes para o mesmo processo em execução retornam 409. Fila cheia retorna 429 local, sem chamar o provedor.
+
+A rota síncrona `/gerar` permanece para compatibilidade e usa uma tentativa; o botão usa exclusivamente `/solicitacoes`. Todas as chamadas DataJud, inclusive análise antiga e consulta de CNJ, passam pelo mesmo controle. As rotas síncronas informam indisponibilidade quando o controle exige espera; não ocupam threads dormindo nem contornam a pausa.
+
+### Coordenação e recuperação
+
+`datajud_controle` serializa a admissão às chamadas por transações curtas. Há uma consulta externa em voo, com espaçamento padrão de 1,5 s entre inícios (no máximo aproximadamente 40/min). Esse valor é conservador e não promete disponibilidade do provedor. A reserva expira em 90 s para recuperar interrupções do processo; o cliente HTTP usa timeout de conexão de 10 s e resposta de 55 s. Os servidores precisam de relógios sincronizados e devem apontar ao mesmo banco para compartilhar os limites.
+
+HTTP 429 provoca pausa global de pelo menos 30 s ou o `Retry-After`, se maior. O cabeçalho aceita segundos ou data HTTP. A fila também recupera HTTP 502/503/504 e falhas de conexão/leitura. Há no máximo três tentativas, com intervalo crescente a partir de 5 s e pequena variação aleatória, dentro de cinco minutos desde a submissão. Esperar a vez não consome uma tentativa HTTP. Se `Retry-After` exceder esse prazo, a solicitação termina com falha e a pausa global continua sendo respeitada. Não existe repetição infinita.
+
+O cache de respostas válidas dura cinco minutos e é identificado pelo usuário autenticado, endpoint e corpo normalizado. Tem até 200 entradas, cada uma limitada a 4 milhões de caracteres. Consultas equivalentes de processos da mesma conta podem reutilizar a resposta; o resultado calculado continua pertencendo ao processo autorizado. Gerações concluídas equivalentes do mesmo processo reutilizam a estatística recente, sem duplicar o histórico. Erros nunca são armazenados como resultados válidos.
+
+O worker revalida a conta e o acesso ao processo em cada execução. A estatística e o estado `CONCLUIDA` são gravados na mesma transação. Reservas de solicitações interrompidas podem ser recuperadas após 90 s. As solicitações terminais são removidas após sete dias; as estatísticas permanecem. Consultas externas ficam fora das transações de gravação, evitando manter conexões do banco ocupadas enquanto o provedor responde.
+
+O log inclui endpoint, status externo, duração e `error.type` quando ele tem formato seguro. Não registra corpo, `reason`, credenciais ou dados dos processos. `error.type=es_rejected_execution_exception`, por exemplo, permite diferenciar rejeição de recursos de uma mensagem genérica. A mensagem da interface não presume que todo 429 comprova excesso de chamadas da aplicação.
+
+### Configuração e banco existente
+
+Os padrões e variáveis `DATAJUD_*` estão em `src/main/resources/application.properties`. É possível ajustar intervalo, pausa, tentativas, prazo, cache e limites da fila (100 globais; 5 por usuário). Para desativar somente o consumidor da fila, use `DATAJUD_WORKER_ENABLED=false`.
+
+No perfil MySQL, aplique `schema/20261104_datajud_fila.sql` antes de iniciar a nova versão. O script adiciona três tabelas sem alterar estatísticas existentes. Não foi executado em um banco real durante esta implementação. O perfil de desenvolvimento H2 em memória cria as tabelas automaticamente, mas perde fila, cache e dados ao reiniciar; persistência entre reinicializações exige um banco persistente. Múltiplas instâncias com bancos H2 separados não compartilham coordenação.
