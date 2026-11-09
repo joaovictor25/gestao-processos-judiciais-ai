@@ -9,9 +9,9 @@ import { areas, dadosDoProcesso, graus, mascararMoeda, statusProcesso, tribunais
 import { ConsultaCnj } from './ConsultaCnj';
 import { iniciarFormulario, reduzirFormulario } from './preenchimentoCnj';
 
-function FormSection({ numero, titulo, descricao, children }: { numero: number; titulo: string; descricao: string; children: ReactNode }) {
+function FormSection({ numero, titulo, descricao, children }: { numero: number; titulo: string; descricao?: string; children: ReactNode }) {
   return <section className="process-form-section" aria-labelledby={`section-${numero}`}>
-    <div className="process-section-heading"><span>{numero}</span><div><h2 id={`section-${numero}`}>{titulo}</h2><p>{descricao}</p></div></div>
+    <div className="process-section-heading"><span>{numero}</span><div><h2 id={`section-${numero}`}>{titulo}</h2>{descricao && <p>{descricao}</p>}</div></div>
     <div className="process-section-fields">{children}</div>
   </section>;
 }
@@ -65,6 +65,7 @@ export function ProcessoForm({ processo, modo, salvar }: {
         </div>
         <Input {...campo('clienteVinculado')} label="Cliente" required placeholder="Nome do cliente" maxLength={255} />
         <Select {...campo('posicaoCliente')} label="Posição do cliente" required options={['AUTOR', 'RÉU']} placeholder="Selecione a posição" />
+        <div className="process-field-full"><Select {...campo('status')} label="Status do processo" required options={statusProcesso} placeholder="Selecione o status" /></div>
       </FormSection>
       <FormSection numero={2} titulo="Dados processuais" descricao="Informações de classificação e localização do processo.">
         <Select {...campo('tribunal')} label="Tribunal" required options={tribunais} placeholder="Selecione o tribunal" />
@@ -81,14 +82,13 @@ export function ProcessoForm({ processo, modo, salvar }: {
         <Input {...campo('assuntoCodigo')} label="Código do assunto" placeholder="Ex.: 10439" maxLength={255} />
         <div className="process-field-full"><Select {...campo('areaAtuacao')} label="Área de atuação" required options={areas} placeholder="Selecione a área de atuação" /></div>
       </FormSection>
-      <FormSection numero={4} titulo="Informações complementares" descricao="Dados adicionais para organização e acompanhamento do processo.">
-        <Select {...campo('status')} label="Status do processo" required options={statusProcesso} placeholder="Selecione o status" />
-        <Input {...campo('valorCausa')} label="Valor da causa" placeholder="R$ 0,00" inputMode="numeric" maxLength={30}
-          onChange={event => atualizar('valorCausa', mascararMoeda(event.target.value))} />
-        <div className="process-field-full"><Input {...campo('nomeMagistrado')} label="Magistrado" placeholder="Nome do magistrado responsável" maxLength={255} /></div>
-      </FormSection>
-      <FormSection numero={5} titulo="Período" descricao="Defina as datas utilizadas como referência para o processo e para consultas relacionadas.">
-        <Input {...campo('dataInicio')} label="Data de distribuição" type="date" required max="9999-12-31" />
+      {modo === 'edit' && <FormSection numero={4} titulo="Informações complementares" descricao="Dados adicionais para organização e acompanhamento do processo.">
+          <Input {...campo('valorCausa')} label="Valor da causa" placeholder="R$ 0,00" inputMode="numeric" maxLength={30}
+            onChange={event => atualizar('valorCausa', mascararMoeda(event.target.value))} />
+          <div className="process-field-full"><Input {...campo('nomeMagistrado')} label="Magistrado" placeholder="Nome do magistrado responsável" maxLength={255} /></div>
+      </FormSection>}
+      <FormSection numero={modo === 'edit' ? 5 : 4} titulo="Período">
+        <div className="process-field-full"><Input {...campo('dataInicio')} label="Data de distribuição" type="date" required max="9999-12-31" /></div>
       </FormSection>
     </fieldset>
     {erro && <p className="notice notice--error process-save-error" role="alert">{erro} Seus dados continuam no formulário.</p>}
