@@ -24,6 +24,7 @@ import br.com.axionweb.backend.service.AuthService;
 import br.com.axionweb.backend.service.ProcessoService;
 import br.com.axionweb.backend.service.UsuarioService;
 import jakarta.persistence.EntityManagerFactory;
+import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -85,6 +86,7 @@ class MySqlPersistenceIntegrationTests {
     }
 
     @Autowired JdbcTemplate jdbc;
+    @Autowired Flyway flyway;
     @Autowired UsuarioService usuarios;
     @Autowired AuthService autenticacao;
     @Autowired CustomUserDetailsService detalhesUsuario;
@@ -117,6 +119,13 @@ class MySqlPersistenceIntegrationTests {
                 """, Integer.class);
 
         assertThat(migracoes).isEqualTo(1);
+        assertThat(jdbc.queryForObject("""
+                select count(*) from flyway_schema_history
+                where version = '1' and script = 'V1__baseline_prosint.sql'
+                  and type = 'SQL' and success = 1 and checksum is not null
+                """, Integer.class)).isEqualTo(1);
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("1");
+        assertThat(flyway.info().pending()).isEmpty();
         assertThat(tabelas).isEqualTo(9);
     }
 
