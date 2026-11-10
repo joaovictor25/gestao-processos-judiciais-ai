@@ -32,5 +32,7 @@ jobs:
         uses: actions/upload-artifact@v7.0.2
         with:
           name: docker-homologacao-logs
-          path: .homolog/stack.log
+          path: |
+            .homolog/stack.log
+            .homolog/rede.txt
           if-no-files-found: ignore

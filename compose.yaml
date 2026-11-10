@@ -34,7 +34,7 @@ services:
       publica: {}
       edge:
         # IP fixo: o back-end confia em X-Forwarded-* somente vindos deste endereco.
-        ipv4_address: 172.31.250.2
+        ipv4_address: ${PROSINT_EDGE_PREFIX:-172.31.250}.2
     read_only: true
     tmpfs:
       - /tmp
@@ -57,7 +57,9 @@ services:
       context: ./frontend
     image: prosint-frontend:${PROSINT_VERSION:-latest}
     restart: unless-stopped
-    networks: [edge]
+    networks:
+      edge:
+        ipv4_address: ${PROSINT_EDGE_PREFIX:-172.31.250}.3
     read_only: true
     tmpfs:
       - /tmp
@@ -80,7 +82,9 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       MYSQL_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-prosint}?sslMode=REQUIRED&characterEncoding=UTF-8&connectionTimeZone=UTC
       MYSQL_USER: ${MYSQL_USER:-prosint}
-      TRUSTED_PROXY_REGEX: '172\.31\.250\.2'
+      # Somente o IP fixo do Caddy. Os pontos do prefixo nao sao escapados (o Compose nao transforma
+      # valores), mas o Tomcat exige correspondencia completa: para um IPv4 valido equivale ao IP exato.
+      TRUSTED_PROXY_REGEX: '${PROSINT_EDGE_PREFIX:-172.31.250}\.2'
       MYSQL_POOL_MAX_SIZE: ${MYSQL_POOL_MAX_SIZE:-10}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
       DATAJUD_WORKER_ENABLED: ${DATAJUD_WORKER_ENABLED:-true}
@@ -97,9 +101,10 @@ services:
       - { source: datajud_api_key, target: DATAJUD_API_KEY }
       - { source: gemini_api_key, target: GEMINI_API_KEY }
     networks:
-      - edge  # recebe trafego apenas do proxy
-      - dados # acesso ao MySQL
-      - saida # saida para DataJud, DJEN e Gemini
+      edge: # recebe trafego apenas do proxy
+        ipv4_address: ${PROSINT_EDGE_PREFIX:-172.31.250}.4
+      dados: {} # acesso ao MySQL
+      saida: {} # saida para DataJud, DJEN e Gemini
     read_only: true
     tmpfs:
       - /tmp
@@ -147,11 +152,18 @@ networks:
   # Unica rede com portas publicadas; tambem usada pelo Caddy para emitir certificados.
   publica: {}
   # Proxy <-> frontend/backend, sem saida para a internet.
+  # Enderecos fixos (.2 proxy, .3 frontend, .4 backend) ficam FORA de ip_range: o IPAM do Docker
+  # entrega automaticamente apenas .128-.254 e nunca disputa um IP reservado, seja qual for a
+  # ordem de inicializacao. Sem ip_range, o primeiro conteiner a subir recebia .2 (o IP do Caddy)
+  # e o proxy falhava com "Address already in use".
+  # PROSINT_EDGE_PREFIX permite trocar a /24 se ela colidir com outra rede (deploy/scripts/verificar-rede.sh).
   edge:
     internal: true
     ipam:
       config:
-        - subnet: 172.31.250.0/24
+        - subnet: ${PROSINT_EDGE_PREFIX:-172.31.250}.0/24
+          ip_range: ${PROSINT_EDGE_PREFIX:-172.31.250}.128/25
+          gateway: ${PROSINT_EDGE_PREFIX:-172.31.250}.1
   # Backend <-> MySQL, sem saida para a internet.
   dados:
     internal: true

@@ -8,3 +8,5 @@ Caddyfile text eol=lf
 *.env text eol=lf
 Dockerfile text eol=lf
 mvnw text eol=lf
+*.py text eol=lf
+.env.example text eol=lf

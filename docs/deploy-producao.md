@@ -8,12 +8,29 @@ Nenhum valor secreto aparece neste documento. Todos os comandos partem do diret�
 
 ```
 Internet ──80/443──> proxy (Caddy 2.11, HTTPS automático)
-                       │ rede "edge" (interna, 172.31.250.0/24; proxy = 172.31.250.2)
+                       │ rede "edge" (interna, 172.31.250.0/24)
                        ├── /            → frontend (Nginx sem root, React compilado)
                        └── /api/*       → backend (Spring Boot 4.1.1, Java 25, perfil prod)
                                             │ rede "dados" (interna)    │ rede "saida"
                                             └── mysql (8.4 LTS)         └── DataJud, DJEN, Gemini
 ```
+
+**Endereços na rede `edge`** (prefixo `PROSINT_EDGE_PREFIX`, padrão `172.31.250`):
+
+| Endereço | Uso |
+|---|---|
+| `.1` | gateway |
+| `.2` | proxy (Caddy), o único IP em que o back-end confia para `X-Forwarded-*` |
+| `.3` | frontend |
+| `.4` | backend |
+| `.128`–`.254` | faixa automática (`ip_range`) |
+
+Os IPs fixos ficam fora da faixa automática. Assim, o IPAM do Docker nunca entrega a outro contêiner um
+endereço reservado, qualquer que seja a ordem de inicialização. Sem essa separação, o primeiro contêiner a
+subir recebia `.2` e o proxy falhava com `Address already in use`.
+
+A homologação usa `172.31.251` (`deploy/homolog/homolog.env`) e por isso pode rodar na mesma VPS que a
+produção.
 
 | Serviço | Imagem | Portas no host | Limites (CPU / RAM) |
 |---|---|---|---|
@@ -120,8 +137,10 @@ ls -l secrets/                    # 5 arquivos, -r--r--r--; datajud_api_key com 
 #    credenciais fictícias, sem acesso à internet pelo back-end). Remove tudo ao final.
 bash deploy/scripts/homologacao.sh
 
-# 5. Validação do Compose de produção
+# 5. Validação do Compose de produção: sintaxe, plano de endereços e sub-rede livre na VPS
 docker compose config -q
+docker compose config --format json | python3 deploy/scripts/verificar-enderecos.py
+bash deploy/scripts/verificar-rede.sh 172.31.250 prosint   # se colidir: PROSINT_EDGE_PREFIX=<livre> no .env
 
 # 6. Build e subida (aguarda MySQL → Flyway V1 → validação Hibernate → healthchecks)
 docker compose build --pull
@@ -251,7 +270,9 @@ O `restaurar-mysql.sh` executa, nesta ordem:
 - O Caddy não confia em proxies à sua frente. Ele descarta `X-Forwarded-*` vindos do cliente e envia o IP real
   da conexão, `X-Forwarded-Proto: https` e `X-Forwarded-Host`. Também remove `Forwarded` e `X-Real-IP`.
 - O back-end usa `server.forward-headers-strategy=native` (RemoteIpValve do Tomcat) e só aceita esses cabeçalhos
-  quando a conexão vem de `TRUSTED_PROXY_REGEX`, ou seja, do IP fixo do Caddy, `172.31.250.2`.
+  quando a conexão vem de `TRUSTED_PROXY_REGEX`, ou seja, do IP fixo do Caddy (`<prefixo>.2`, padrão `172.31.250.2`).
+  O Compose monta a regex a partir de `PROSINT_EDGE_PREFIX`, então trocar o prefixo mantém proxy e regex
+  coerentes. `verificar-enderecos.py` confere que a regex aceita somente o proxy.
 - O `X-Forwarded-For` é lido da direita para a esquerda, e o cabeçalho `Forwarded` (RFC 7239) é ignorado.
   Um cliente não consegue falsificar o IP usado pelo limitador de login e cadastro.
 - Testes: `ProxyConfiavelIntegrationTests`, `ProxyNaoConfiavelIntegrationTests` e a etapa 8 da homologação.
@@ -279,6 +300,12 @@ e sem `Server`.
 (`.github/workflows/docker-homologacao.yml`). Ele verifica:
 
 1. Sintaxe do Compose (produção e homologação), Caddyfile para `prosint.tech` e `localhost`, e portas publicadas só no proxy.
+   Também verifica o plano de endereços resolvido (IPs fixos distintos e fora de `ip_range`, overrides que
+   preservam os IPs, regex que confia somente no proxy) e se a sub-rede está livre. Com qualquer falha aqui,
+   o script para antes do build.
+   Depois do `up`, confere os IPs reais (`.2`, `.3`, `.4`) e a ausência de duplicidade, inclusive numa
+   subida em ordem invertida. Se algo falhar, salva o diagnóstico das redes em `.homolog/rede.txt`
+   (anexado ao artefato do GitHub Actions).
 2. Build das duas imagens. O build do front-end falha se o bundle tiver `localhost:<porta>`.
 3. Subida com healthchecks e Flyway: somente `V1`, com sucesso.
 4. Rotas React, cache de assets e HTML, redirecionamento HTTP → HTTPS, cabeçalhos, `/api` preservado e
@@ -302,4 +329,6 @@ docker compose -p prosint-homolog -f compose.yaml -f compose.homolog.yaml --env-
 | `backend` unhealthy logo após subir | `docker compose logs backend`: segredo obrigatório ausente, falha do Flyway ou da validação Hibernate. |
 | `Access denied for user 'prosint'` | `mysql_password` alterado depois da criação do volume (seção 11). |
 | 429 em login para todos os usuários | Clientes chegando com o mesmo IP: há um proxy ou CDN à frente sem `trusted_proxies`, ou IPv6 sem suporte no Docker (seção 3). |
+| `failed to set up container networking: Address already in use` | Um IP fixo da `edge` foi entregue a outro contêiner. Confira com `docker network inspect prosint_edge` se os IPs fixos estão fora de `ip_range` (`verificar-enderecos.py`). Na homologação, consulte `.homolog/rede.txt`. |
+| `Pool overlaps with other one on this address space` | A /24 da `edge` colide com outra rede Docker ou rota do host. Rode `verificar-rede.sh`, defina um `PROSINT_EDGE_PREFIX` livre no `.env` e execute `docker compose up -d --wait`. |
 | Página antiga após deploy | O HTML é `no-cache`; force a atualização do navegador. Se persistir, confira se o frontend foi recriado (`docker compose ps`). |

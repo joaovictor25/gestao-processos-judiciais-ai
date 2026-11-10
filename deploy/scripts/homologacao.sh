@@ -16,15 +16,42 @@ HTTPS="https://localhost:18443"
 HTTP="http://localhost:18080"
 SEGREDOS="$RAIZ/.homolog/secrets"
 LOG_FALHA="$RAIZ/.homolog/stack.log"
+DIAGNOSTICO_REDE="$RAIZ/.homolog/rede.txt"
+# Mesmo valor do homolog.env; a producao usa 172.31.250.
+PREFIXO="$(sed -n 's/^PROSINT_EDGE_PREFIX=//p' "$PROSINT_ENV_FILE")"
+REDE_EDGE="${PROSINT_PROJECT}_edge"
 falhas=0
 ok() { printf '  OK    %s\n' "$*"; }
 erro() { printf '  FALHA %s\n' "$*"; falhas=$((falhas + 1)); }
 verificar() { local descricao="$1"; shift; if "$@"; then ok "$descricao"; else erro "$descricao"; fi; }
 status() { curl -sk -o /dev/null -w '%{http_code}' "$@"; }
 
+# Estado das redes para diagnosticar falhas de inicializacao (ex.: "Address already in use").
+diagnosticar_rede() {
+  {
+    echo "== docker compose ps -a"; dc ps -a
+    echo; echo "== redes Docker (nome, driver, sub-redes)"
+    docker network ls -q | xargs -r docker network inspect \
+      --format '{{.Name}} {{.Driver}} internal={{.Internal}} {{range .IPAM.Config}}{{.Subnet}} range={{.IPRange}} gw={{.Gateway}} {{end}}'
+    local rede
+    for rede in $(docker network ls --filter "name=^${PROSINT_PROJECT}_" --format '{{.Name}}'); do
+      echo; echo "== $rede: conteineres e enderecos"
+      docker network inspect "$rede" --format '{{range .Containers}}{{.Name}} {{.IPv4Address}}{{"\n"}}{{end}}'
+    done
+    echo; echo "== enderecos por conteiner do projeto"
+    dc ps -aq | xargs -r docker inspect \
+      --format '{{.Name}} {{.State.Status}} {{range $r, $c := .NetworkSettings.Networks}}{{$r}}={{$c.IPAddress}} {{end}}'
+    echo; echo "== rotas IPv4 do host"; ip -4 route show 2>/dev/null || true
+  } > "$DIAGNOSTICO_REDE" 2>&1 || true
+  echo "Diagnostico de rede: $DIAGNOSTICO_REDE" >&2
+}
+
 limpar() {
   local codigo=$?
-  if (( codigo != 0 || falhas > 0 )); then dc logs --no-color > "$LOG_FALHA" 2>&1 || true; echo "Logs: $LOG_FALHA" >&2; fi
+  if (( codigo != 0 || falhas > 0 )); then
+    dc logs --no-color > "$LOG_FALHA" 2>&1 || true; echo "Logs: $LOG_FALHA" >&2
+    diagnosticar_rede
+  fi
   if [[ "${MANTER:-0}" != "1" ]]; then
     log "Removendo a stack de homologacao e seus volumes descartaveis"
     dc down -v --remove-orphans >/dev/null 2>&1 || true
@@ -56,12 +83,36 @@ verificar "Caddyfile valido para prosint.tech (producao)" caddy_valido prosint.t
 verificar "Caddyfile valido para localhost (homologacao)" caddy_valido localhost
 publicados="$(dc config --format json | grep -o '"published"' | wc -l | tr -d ' ')"
 verificar "somente o proxy declara portas publicadas (2)" test "$publicados" -eq 2
+plano_producao() {
+  env ACME_EMAIL=ci@example.invalid docker compose --project-directory "$RAIZ" -f "$RAIZ/compose.yaml" \
+    --env-file /dev/null config --format json | python3 "$RAIZ/deploy/scripts/verificar-enderecos.py"
+}
+plano_homologacao() { dc config --format json | python3 "$RAIZ/deploy/scripts/verificar-enderecos.py" --homologacao; }
+verificar "plano de enderecos da producao (IPs fixos fora da faixa dinamica)" plano_producao
+verificar "plano de enderecos da homologacao (overrides preservam IPs fixos)" plano_homologacao
+verificar "sub-rede $PREFIXO.0/24 livre (outras redes Docker e rotas do host)" \
+  "$RAIZ/deploy/scripts/verificar-rede.sh" "$PREFIXO" "$PROSINT_PROJECT"
+(( falhas == 0 )) || { echo "Configuracao invalida; build e inicializacao nao executados." >&2; exit 1; }
 
 log "3. Build das imagens"
 dc build --pull
 
+# IP efetivo de cada servico na edge e ausencia de enderecos duplicados.
+ip_de() { docker inspect -f "{{with index .NetworkSettings.Networks \"$REDE_EDGE\"}}{{.IPAddress}}{{end}}" "$(dc ps -q "$1")"; }
+enderecos_efetivos() {
+  local esperado servico ip duplicados
+  for servico in proxy:2 frontend:3 backend:4; do
+    esperado="$PREFIXO.${servico##*:}"
+    ip="$(ip_de "${servico%%:*}")"
+    [[ "$ip" == "$esperado" ]] || { echo "    ${servico%%:*}: $ip (esperado $esperado)" >&2; return 1; }
+  done
+  duplicados="$(docker network inspect "$REDE_EDGE" --format '{{range .Containers}}{{.IPv4Address}}{{"\n"}}{{end}}' | sed '/^$/d' | sort | uniq -d)"
+  [[ -z "$duplicados" ]] || { echo "    duplicados: $duplicados" >&2; return 1; }
+}
+
 log "4. Inicializacao (MySQL -> Flyway -> Hibernate validate -> proxy)"
 dc up -d --wait --wait-timeout 420
+verificar "IPs fixos efetivos (proxy .2, frontend .3, backend .4) e sem duplicidade" enderecos_efetivos
 
 log "5. Verificacoes"
 verificar "Flyway aplicou somente a V1 com sucesso" test \
@@ -105,9 +156,12 @@ verificar "login devolve JWT" test -n "$token"
 verificar "cadastro de processo" test "$(status -H "Authorization: Bearer $token" -H 'Content-Type: application/json' \
   -d '{"numeroProcesso":"HOMOLOG-0001","tribunal":"TJPR"}' "$HTTPS/api/processo/cadastrar")" = 200
 
-log "6. Persistencia apos 'docker compose down' (sem -v) e novo 'up'"
+log "6. Persistencia apos 'docker compose down' (sem -v) e novo 'up' em ordem invertida"
 dc down
+# Proxy e frontend primeiro (ignorando depends_on): os IPs fixos nao dependem da ordem de inicializacao.
+dc up -d --no-deps proxy frontend
 dc up -d --wait --wait-timeout 420
+verificar "IPs fixos preservados com ordem de inicializacao invertida" enderecos_efetivos
 token="$(entrar)"
 verificar "login apos reinicio" test -n "$token"
 processo_listado() { curl -sk -H "Authorization: Bearer $token" "$HTTPS/api/processo/listar-usuario" | grep -q HOMOLOG-0001; }

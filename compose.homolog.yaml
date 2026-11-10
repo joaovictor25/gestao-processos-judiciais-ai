@@ -3,6 +3,8 @@
 #   docker compose -p prosint-homolog -f compose.yaml -f compose.homolog.yaml --env-file deploy/homolog/homolog.env ...
 # Credenciais ficticias geradas a cada execucao, banco descartavel e back-end SEM saida para a
 # internet: nenhuma API externa real (DataJud, DJEN, Gemini) pode ser consumida.
+# A rede edge usa PROSINT_EDGE_PREFIX do homolog.env (172.31.251), distinta da producao (172.31.250),
+# para que a homologacao possa rodar na mesma VPS sem "Pool overlaps".
 services:
   proxy:
     # Apenas loopback do host, em portas altas, para nao conflitar com uma producao na mesma maquina.
@@ -11,9 +13,12 @@ services:
       - "127.0.0.1:18443:443"
 
   backend:
+    # Remove somente a rede "saida". O IP fixo na edge precisa ser repetido, pois !override substitui
+    # o mapeamento inteiro; homologacao.sh confere o IP efetivo de cada servico.
     networks: !override
-      - edge
-      - dados
+      edge:
+        ipv4_address: ${PROSINT_EDGE_PREFIX:-172.31.250}.4
+      dados: {}
     environment:
       DATAJUD_WORKER_ENABLED: "false"
       APP_DATAJUD_BASE_URL: http://acesso-externo-bloqueado.invalid
