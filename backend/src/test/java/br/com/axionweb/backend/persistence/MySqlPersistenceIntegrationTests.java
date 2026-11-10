@@ -60,6 +60,7 @@ class MySqlPersistenceIntegrationTests {
 
     private static final String EMAIL = "mysql-persistencia@prosint.test";
     private static final String SENHA = "Senha-segura-123";
+    private static final String TEXTO_EXTENSO = "Decisão judicial — íntegra da comunicação ⚖️.\n".repeat(4_000);
     private static Long processoId;
     private static Long estatisticaId;
     private static Long pesquisaId;
@@ -167,7 +168,8 @@ class MySqlPersistenceIntegrationTests {
         comunicacao.setDataDisponibilizacao("2026-11-09");
         comunicacao.setIdOrgao(123);
         comunicacao.setSiglaTribunal("TJPR");
-        comunicacao.setTexto("Texto integral da comunicacao DJEN.");
+        assertThat(TEXTO_EXTENSO.getBytes(java.nio.charset.StandardCharsets.UTF_8).length).isGreaterThan(65_535);
+        comunicacao.setTexto(TEXTO_EXTENSO);
         comunicacao.setTipoComunicacao("Intimacao");
         assertThat(comunicacaoRepository.saveAndFlush(comunicacao).getId()).isNotNull();
 
@@ -215,6 +217,8 @@ class MySqlPersistenceIntegrationTests {
     @Test
     @Order(3)
     void dadosPermanecemAposReinicioDoContextoEValidacaoFlyway() {
+        assertThat(comunicacaoRepository.findByProcessoIdOrderByIdAsc(processoId))
+                .singleElement().extracting(Comunicacao::getTexto).isEqualTo(TEXTO_EXTENSO);
         assertThat(usuarioRepository.findByEmail(EMAIL)).isPresent();
         assertThat(processoRepository.findById(processoId)).isPresent();
         assertThat(dataJudRepository.findById(estatisticaId))

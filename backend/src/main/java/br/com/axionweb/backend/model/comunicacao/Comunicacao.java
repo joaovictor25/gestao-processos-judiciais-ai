@@ -2,6 +2,9 @@ package br.com.axionweb.backend.model.comunicacao;
 
 import br.com.axionweb.backend.model.processo.Processo;
 import jakarta.persistence.*;
+import org.hibernate.Length;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "comunicacao")
@@ -39,8 +42,9 @@ public class Comunicacao {
     @Column(name = "status")
     private String status;
 
-    @Lob
-    @Column(name = "texto")
+    // Texto extenso via JDBC String; no MySQL corresponde ao LONGTEXT da migracao.
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
+    @Column(name = "texto", length = Length.LONG32)
     private String texto;
 
     @Column(name = "tipo_comunicacao")

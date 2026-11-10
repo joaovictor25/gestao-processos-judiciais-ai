@@ -91,6 +91,24 @@ class AnaliseProcessoIntegrationTests {
     }
 
     @Test
+    void preservaTextoExtensoUnicodeENuloAoRecarregarComunicacoes() {
+        Processo processo = cadastrarProcesso("TEXTO-LONGO");
+        String texto = "Decisão judicial — íntegra da comunicação ⚖️.\n".repeat(4_000);
+        assertThat(texto.getBytes(java.nio.charset.StandardCharsets.UTF_8).length).isGreaterThan(65_535);
+        var extensa = new Comunicacao();
+        extensa.setProcesso(processo);
+        extensa.setTexto(texto);
+        Long id = comunicacaoRepository.saveAndFlush(extensa).getId();
+        // Chamadas separadas ao repositorio: leitura em uma nova transacao/contexto JPA.
+        assertThat(comunicacaoRepository.findById(id).orElseThrow().getTexto()).isEqualTo(texto);
+
+        var semTexto = new Comunicacao();
+        semTexto.setProcesso(processo);
+        Long idNulo = comunicacaoRepository.saveAndFlush(semTexto).getId();
+        assertThat(comunicacaoRepository.findById(idNulo).orElseThrow().getTexto()).isNull();
+    }
+
+    @Test
     void deveSalvarEConsultarCadaAnalisePeloSeuProcesso() {
         Processo primeiro = cadastrarProcesso("0000001");
         when(dataJudService.buscarProcessos(any()))
