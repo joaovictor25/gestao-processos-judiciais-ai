@@ -18,8 +18,10 @@ button svg { pointer-events: none; }
 button { color: inherit; }
 .button { min-height: 46px; border: 1px solid transparent; border-radius: var(--radius-md); transition: background-color .15s, border-color .15s, box-shadow .15s, transform .15s; padding: 11px 23px; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 9px; text-decoration: none; }
 .button:hover { text-decoration: none; }
+.button--secondary:hover:not(:disabled), .button--ghost:hover:not(:disabled) { color: var(--color-primary); }
+.button--gold:hover:not(:disabled) { color: var(--color-on-secondary); }
 .button--primary { background: var(--color-primary); color: var(--color-on-primary); }
-.button--primary:hover:not(:disabled) { background: var(--color-primary-hover); box-shadow: var(--shadow-button); }
+.button--primary:hover:not(:disabled) { background: var(--color-primary-hover); color: var(--color-on-primary); box-shadow: var(--shadow-button); }
 .button--primary:active:not(:disabled) { background: var(--color-primary-active); box-shadow: none; }
 .button--gold { background: var(--color-secondary); color: var(--color-on-secondary); }
 .button--gold:hover:not(:disabled) { background: var(--color-secondary-hover); }

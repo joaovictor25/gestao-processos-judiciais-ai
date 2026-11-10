@@ -101,7 +101,14 @@ function DataJudConteudo({ processoId, versao, analisando }: { processoId: numbe
 
   return <div className="datajud-tab">
     {erroGeracao && <div className="notice notice--error" role="alert"><strong>Não foi possível gerar as estatísticas.</strong> {erroGeracao}</div>}
-    <div className="datajud-columns"><div className="datajud-main"><section className="datajud-panel detail-card">
+    <div className="datajud-columns"><div className="datajud-main">
+  {estatistica && <section className="detail-card datajud-current-summary" aria-labelledby="current-summary-title" aria-live="polite">
+    <h2 id="current-summary-title"><Icon name="sparkles" />Síntese das estatísticas com IA</h2>
+    {sintese ? <div className="datajud-ai-result"><h3>Síntese atual</h3><p>{sintese.sintese}</p>
+      <small><time dateTime={sintese.geradaEm}>{dataSintese(sintese.geradaEm)}</time> · {periodoConsulta(estatistica.parametros)}</small>
+    </div> : <p>Esta estatística ainda não possui síntese.</p>}
+  </section>}
+  <section className="datajud-panel detail-card">
     <div className="detail-section-heading"><span className="process-summary-icon process-summary-icon--blue"><Icon name="chart" /></span><div><h2>Análise DataJud</h2><p>A consulta usa o tribunal, o código da classe e o grau, quando disponíveis. A amostra pode incluir diferentes assuntos e órgãos julgadores.</p></div>
     </div>
     {carregando && !dadosGerados ? <ProcessoLoading mensagem="Carregando estatísticas salvas…" /> : erro && !dadosGerados ? <ProcessoFeedback titulo="Não foi possível carregar o DataJud" mensagem={erro} retry={tentarNovamente} />
@@ -117,12 +124,7 @@ function DataJudConteudo({ processoId, versao, analisando }: { processoId: numbe
           descricao="Contagem dos processos sem baixa definitiva identificada na amostra consultada." />
       </div><p className="datajud-sample">Amostra consultada: {numero(estatistica.quantidadeProcessos)} processos. Os indicadores descrevem a amostra, não uma previsão de resultado.</p></>}
   </section>
-  {estatistica && <section className="detail-card datajud-current-summary" aria-labelledby="current-summary-title" aria-live="polite">
-    <h2 id="current-summary-title"><Icon name="sparkles" />Síntese das estatísticas com IA</h2>
-    {sintese ? <div className="datajud-ai-result"><h3>Síntese atual</h3><p>{sintese.sintese}</p>
-      <small><time dateTime={sintese.geradaEm}>{dataSintese(sintese.geradaEm)}</time> · {periodoConsulta(estatistica.parametros)}</small>
-    </div> : <p>Esta estatística ainda não possui síntese.</p>}
-  </section>}</div><aside className="datajud-sidebar"><form className="detail-card publication-search" onSubmit={event => { event.preventDefault(); void gerar(); }}>
+</div><aside className="datajud-sidebar"><form className="detail-card publication-search" onSubmit={event => { event.preventDefault(); void gerar(); }}>
     <h2>Gerar estatística</h2>
     <p className="field-hint">Filtre pela data de ajuizamento. Sem datas, a consulta não aplica recorte temporal.</p>
     <fieldset disabled={gerando || conferindo || analisando || sintetizando}>

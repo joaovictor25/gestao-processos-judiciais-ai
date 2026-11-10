@@ -51,10 +51,10 @@ export function ComunicacoesTab({ processoId, versao }: { processoId: number; ve
         aoCarregar={setPesquisando} aoResultado={receberPesquisa} />
       <AnaliseComunicacoesCard key={`${processoId}-${versao}-${comunicacaoIds.join(',')}`} processoId={processoId}
         comunicacaoIds={comunicacaoIds} habilitado={podeAnalisar} aoCarregar={setAnalisando} aoResultado={receberAnalise} />
+      <HistoricoSintesesComunicacoes key={processoId} processoId={processoId} versao={resultado?.geradaEm ?? ''} />
     </div>
     <div className="communications-main">
     {resultado?.sintese && <SinteseComunicacoesResultado pesquisa={resultado} />}
-    <HistoricoSintesesComunicacoes key={processoId} processoId={processoId} versao={resultado?.geradaEm ?? ''} />
     {pesquisando ? <ProcessoLoading mensagem="Pesquisando publicações…" />
       : pesquisa === null && carregando ? <ProcessoLoading mensagem="Carregando comunicações salvas…" /> : pesquisa === null && erro ? <ProcessoFeedback titulo="Não foi possível carregar as comunicações" mensagem={erro} retry={tentarNovamente} />
       : comunicacoes.length === 0 ? <ProcessoFeedback titulo={pesquisa === null ? 'Nenhuma comunicação foi encontrada para este processo.' : 'Nenhuma publicação encontrada para os filtros informados.'} mensagem="Informe o texto e, se desejar, as datas na caixa Pesquisar por publicações." />
