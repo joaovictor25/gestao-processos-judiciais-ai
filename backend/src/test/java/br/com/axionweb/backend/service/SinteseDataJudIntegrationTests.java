@@ -143,6 +143,24 @@ class SinteseDataJudIntegrationTests {
     }
 
     @Test
+    void chamadaDaIaOcorreSemTransacaoEFalhaNaoRegistraAtividade() {
+        var execucao = gerar(null, null);
+        String atividadeAntes = processoRepository.findById(processoId).orElseThrow().getUltimaAtividadeTitulo();
+        when(llm.sintetizarEstatisticas(any())).thenAnswer(chamada -> {
+            assertThat(org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive())
+                    .as("nenhuma transação ou conexão retida durante a chamada externa").isFalse();
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.BAD_GATEWAY);
+        });
+        assertThatThrownBy(() -> sinteses.gerar(processoId, execucao.id())).isInstanceOf(ResponseStatusException.class);
+        assertThat(processoRepository.findById(processoId).orElseThrow().getUltimaAtividadeTitulo()).isEqualTo(atividadeAntes);
+        assertThat(sinteses.consultar(processoId, execucao.id()).statusSintese()).isEqualTo("SEM_SINTESE");
+        doReturn(TEXTO).when(llm).sintetizarEstatisticas(any());
+        sinteses.gerar(processoId, execucao.id());
+        assertThat(processoRepository.findById(processoId).orElseThrow().getUltimaAtividadeTitulo())
+                .isEqualTo("Síntese das estatísticas DataJud concluída");
+    }
+
+    @Test
     void respostaAtrasadaNaoSobrescreveRegeneracaoJaSalva() throws Exception {
         var execucao = gerar(null, null);
         var iniciou = new CountDownLatch(1);

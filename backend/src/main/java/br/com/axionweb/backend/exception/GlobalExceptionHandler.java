@@ -118,6 +118,15 @@ public class GlobalExceptionHandler {
                 exception.getStatus().value(), exception.getCodigo(), exception.getMessage()));
     }
 
+    @ExceptionHandler(LimiteExcedidoException.class)
+    public ResponseEntity<ErroIntegracaoDTO> limiteExcedido(LimiteExcedidoException exception) {
+        // Sem e-mail, IP ou conteúdo no log: apenas o código do limite atingido.
+        log.info("Requisição limitada: codigo={}", exception.getCodigo());
+        return ResponseEntity.status(exception.getStatus())
+                .header("Retry-After", Long.toString(exception.getRetryAfterSegundos()))
+                .body(new ErroIntegracaoDTO(exception.getStatus().value(), exception.getCodigo(), exception.getMessage()));
+    }
+
     @ExceptionHandler(ConsultaExternaException.class)
     public ResponseEntity<ErroIntegracaoDTO> consultaExterna(ConsultaExternaException exception) {
         var causa = exception.getCause();

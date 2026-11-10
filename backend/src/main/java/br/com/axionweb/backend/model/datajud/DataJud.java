@@ -80,6 +80,7 @@ public class DataJud {
     public void setDataInicio(LocalDate valor) { dataInicio = valor; }
     public LocalDate getDataFim() { return dataFim; }
     public void setDataFim(LocalDate valor) { dataFim = valor; }
+    public Long getVersao() { return versao; }
     public String getSintese() { return sintese; }
     public Instant getSinteseGeradaEm() { return sinteseGeradaEm; }
     public String getStatusSintese() { return statusSintese == null ? "SEM_SINTESE" : statusSintese; }

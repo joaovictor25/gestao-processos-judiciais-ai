@@ -20,11 +20,14 @@ public class AnaliseComunicacaoService {
     private final ProcessoService processoService;
     private final ComunicacaoRepository comunicacoes;
     private final LLMService llm;
+    private final CotaIAService cotas;
 
-    public AnaliseComunicacaoService(ProcessoService processoService, ComunicacaoRepository comunicacoes, LLMService llm) {
+    public AnaliseComunicacaoService(ProcessoService processoService, ComunicacaoRepository comunicacoes, LLMService llm,
+                                     CotaIAService cotas) {
         this.processoService = processoService;
         this.comunicacoes = comunicacoes;
         this.llm = llm;
+        this.cotas = cotas;
     }
 
     public AnaliseComunicacaoDTO analisar(Long processoId, AnaliseComunicacaoRequestDTO requisicao) {
@@ -49,7 +52,7 @@ public class AnaliseComunicacaoService {
             fontes.add(ComunicacaoConsultadaDTO.de(textos.size(), comunicacao, limpo));
         }
         if (textos.isEmpty()) throw new AnaliseComunicacaoException(SEM_TEXTOS);
-        var categorias = llm.analisarComunicacoes(textos, tipos);
+        var categorias = cotas.executar(() -> llm.analisarComunicacoes(textos, tipos));
         processoService.registrarAnaliseIA(processoId);
         return new AnaliseComunicacaoDTO(textos.size(), duplicadas, categorias, List.copyOf(fontes));
     }

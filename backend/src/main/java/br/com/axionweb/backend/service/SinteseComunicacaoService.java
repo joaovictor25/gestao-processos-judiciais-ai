@@ -7,6 +7,9 @@ import br.com.axionweb.backend.model.processo.Processo;
 import br.com.axionweb.backend.repository.ComunicacaoRepository;
 import br.com.axionweb.backend.repository.PesquisaComunicacaoRepository;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,12 +26,23 @@ public class SinteseComunicacaoService {
     private final ProcessoService processos;
     private final LLMService llm;
     private final ObjectMapper mapper;
+    private final CotaIAService cotas;
+    private final TransactionTemplate leitura;
+    private final TransactionTemplate escrita;
 
     public SinteseComunicacaoService(PesquisaComunicacaoRepository pesquisas, ComunicacaoRepository comunicacoes,
-            ProcessoService processos, LLMService llm, ObjectMapper mapper) {
+            ProcessoService processos, LLMService llm, ObjectMapper mapper, CotaIAService cotas,
+            PlatformTransactionManager transacoes) {
         this.pesquisas = pesquisas; this.comunicacoes = comunicacoes;
-        this.processos = processos; this.llm = llm; this.mapper = mapper;
+        this.processos = processos; this.llm = llm; this.mapper = mapper; this.cotas = cotas;
+        this.leitura = new TransactionTemplate(transacoes);
+        this.leitura.setReadOnly(true);
+        this.escrita = new TransactionTemplate(transacoes);
     }
+
+    /** Dados lidos antes da IA. Sem pesquisa salva, novas guarda as comunicações a registrar ao final. */
+    private record Preparo(PesquisaComunicacaoDTO pronta, Long pesquisaId, Long versao,
+                           List<ComunicacaoSalvaDTO> novas, List<String> textos, int duplicadas) {}
 
     @Transactional
     public PesquisaComunicacao registrar(Processo processo, PesquisaPublicacoesRequestDTO filtros, List<ComunicacaoSalvaDTO> publicacoes) {
@@ -54,26 +68,38 @@ public class SinteseComunicacaoService {
         return ids.equals(ids(pesquisa)) ? dto(pesquisa) : null;
     }
 
-    @Transactional
+    /**
+     * Três etapas: leitura curta, chamada à IA sem transação nem conexão retida e gravação curta.
+     * Nada é gravado se a IA falhar; a gravação revalida o estado sob o bloqueio do processo.
+     */
     public PesquisaComunicacaoDTO gerar(Long processoId, SinteseComunicacaoRequestDTO pedido) {
-        var processo = processos.buscarPorId(processoId);
+        var preparo = leitura.execute(status -> preparar(processoId, pedido));
+        if (preparo.pronta() != null) return preparo.pronta(); // Repetir o clique não consome outra chamada de IA.
+        var categoria = cotas.executar(() -> llm.sintetizarComunicacoes(preparo.textos()));
+        String sintese = validar(categoria, preparo.textos());
+        return escrita.execute(status -> salvar(processoId, pedido, preparo, categoria, sintese));
+    }
+
+    private Preparo preparar(Long processoId, SinteseComunicacaoRequestDTO pedido) {
+        processos.buscarPorId(processoId);
         PesquisaComunicacao pesquisa;
+        List<ComunicacaoSalvaDTO> novas = null;
         if (pedido.pesquisaId() != null) {
             pesquisa = buscar(processoId, pedido.pesquisaId());
         } else {
-            var salvas = comunicacoes.findByProcessoIdOrderByIdAsc(processoId).stream().map(ComunicacaoSalvaDTO::de).toList();
-            if (!salvas.stream().map(ComunicacaoSalvaDTO::id).toList().equals(pedido.comunicacaoIds()))
-                throw new AnaliseComunicacaoException(PESQUISA_DESATUALIZADA);
+            var salvas = salvasConferidas(processoId, pedido);
             // Compatibilidade com comunicações salvas antes do histórico, sem inventar filtros.
-            pesquisa = pesquisas.findFirstByProcessoIdOrderByIdDesc(processoId)
-                    .filter(p -> ids(p).equals(pedido.comunicacaoIds())).orElseGet(() -> registrar(processo, null, salvas));
+            pesquisa = existente(processoId, pedido).orElse(null);
+            if (pesquisa == null) novas = salvas;
         }
-        if (!ids(pesquisa).equals(pedido.comunicacaoIds())) throw new AnaliseComunicacaoException(PESQUISA_DESATUALIZADA);
-        if (pesquisa.sintese != null) return dto(pesquisa); // Repetir o clique não consome outra chamada de IA.
+        if (pesquisa != null) {
+            if (!ids(pesquisa).equals(pedido.comunicacaoIds())) throw new AnaliseComunicacaoException(PESQUISA_DESATUALIZADA);
+            if (pesquisa.sintese != null) return new Preparo(dto(pesquisa), null, null, null, List.of(), 0);
+        }
         var textos = new ArrayList<String>();
         var vistos = new LinkedHashSet<String>();
         int duplicadas = 0, caracteres = 0;
-        for (var publicacao : publicacoes(pesquisa)) {
+        for (var publicacao : pesquisa != null ? publicacoes(pesquisa) : novas) {
             String texto = TextoComunicacao.paraAnalise(publicacao.texto());
             if (texto.isBlank()) continue;
             if (!vistos.add(texto)) { duplicadas++; continue; }
@@ -82,17 +108,46 @@ public class SinteseComunicacaoService {
             textos.add(texto);
         }
         if (textos.isEmpty()) throw new AnaliseComunicacaoException(SEM_TEXTOS);
-        var categoria = llm.sintetizarComunicacoes(textos);
-        String sintese = validar(categoria, textos);
+        return new Preparo(null, pesquisa == null ? null : pesquisa.id, pesquisa == null ? null : pesquisa.versao,
+                novas, List.copyOf(textos), duplicadas);
+    }
+
+    private PesquisaComunicacaoDTO salvar(Long processoId, SinteseComunicacaoRequestDTO pedido, Preparo preparo,
+                                          AnaliseComunicacaoDTO.Categoria categoria, String sintese) {
         var bloqueado = processos.bloquearParaAtualizarAnalise(processoId);
+        PesquisaComunicacao pesquisa;
+        if (preparo.pesquisaId() != null) {
+            pesquisa = buscar(processoId, preparo.pesquisaId());
+            // Outra geração salvou esta busca durante a chamada à IA: preserva o resultado já gravado.
+            if (!Objects.equals(pesquisa.versao, preparo.versao()))
+                throw new ObjectOptimisticLockingFailureException(PesquisaComunicacao.class, pesquisa.id);
+        } else {
+            // Uma nova pesquisa em outra aba pode ter substituído as comunicações durante a chamada à IA.
+            if (!salvasConferidas(processoId, pedido).equals(preparo.novas()))
+                throw new AnaliseComunicacaoException(PESQUISA_DESATUALIZADA);
+            if (existente(processoId, pedido).isPresent())
+                throw new ObjectOptimisticLockingFailureException(PesquisaComunicacao.class, processoId);
+            pesquisa = registrar(bloqueado, null, preparo.novas());
+        }
         pesquisa.sintese = sintese;
         pesquisa.geradaEm = Instant.now();
-        pesquisa.comunicacoesConsideradas = textos.size();
-        pesquisa.duplicadasIgnoradas = duplicadas;
+        pesquisa.comunicacoesConsideradas = preparo.textos().size();
+        pesquisa.duplicadasIgnoradas = preparo.duplicadas();
         pesquisa.evidencias = mapper.writeValueAsString(categoria.itens().isEmpty() ? List.of() : categoria.itens().getFirst().evidencias());
-        pesquisas.saveAndFlush(pesquisa); // @Version rejeita gravações concorrentes da mesma busca.
+        pesquisas.saveAndFlush(pesquisa); // @Version também rejeita gravações concorrentes da mesma busca.
         bloqueado.registrarAtividade("analise", "Síntese das comunicações concluída");
         return dto(pesquisa);
+    }
+
+    private List<ComunicacaoSalvaDTO> salvasConferidas(Long processoId, SinteseComunicacaoRequestDTO pedido) {
+        var salvas = comunicacoes.findByProcessoIdOrderByIdAsc(processoId).stream().map(ComunicacaoSalvaDTO::de).toList();
+        if (!salvas.stream().map(ComunicacaoSalvaDTO::id).toList().equals(pedido.comunicacaoIds()))
+            throw new AnaliseComunicacaoException(PESQUISA_DESATUALIZADA);
+        return salvas;
+    }
+
+    private Optional<PesquisaComunicacao> existente(Long processoId, SinteseComunicacaoRequestDTO pedido) {
+        return pesquisas.findFirstByProcessoIdOrderByIdDesc(processoId).filter(p -> ids(p).equals(pedido.comunicacaoIds()));
     }
 
     private String validar(AnaliseComunicacaoDTO.Categoria categoria, List<String> textos) {
