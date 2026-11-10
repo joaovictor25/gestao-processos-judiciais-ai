@@ -2,7 +2,7 @@
 # Pre-verificacao: a /24 da rede edge (PROSINT_EDGE_PREFIX.0/24) nao pode sobrepor outra rede Docker
 # nem uma rota IPv4 do host; caso contrario o Docker recusa a rede ("Pool overlaps with other one on
 # this address space") ou o trafego e roteado para o lugar errado.
-# Uso: deploy/scripts/verificar-rede.sh [prefixo] [projeto]
+# Uso: bash deploy/scripts/verificar-rede.sh [prefixo] [projeto]
 #   prefixo: tres octetos, padrao 172.31.250 (producao) | projeto: redes ignoradas (padrao prosint)
 set -Eeuo pipefail
 

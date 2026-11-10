@@ -3,7 +3,7 @@
 # Saida: $BACKUP_DIR/prosint-AAAAMMDDTHHMMSSZ.sql.gz + .sha256. Remove backups locais mais antigos
 # que $BACKUP_RETENCAO_DIAS. A copia para fora da VPS e feita por BACKUP_COPIA_CMD (opcional).
 # Uso (cron diario, ver docs/deploy-producao.md):
-#   deploy/scripts/backup-mysql.sh
+#   bash deploy/scripts/backup-mysql.sh
 set -Eeuo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
@@ -33,7 +33,8 @@ log "Backup concluido: $(du -h "$arquivo" | cut -f1)"
 if [[ -n "${BACKUP_COPIA_CMD:-}" ]]; then
   # Exemplo: BACKUP_COPIA_CMD='rclone copy "$1" remoto:prosint-backups && rclone copy "$1.sha256" remoto:prosint-backups'
   log "Copiando para fora da VPS"
-  bash -c "$BACKUP_COPIA_CMD" copia "$arquivo"
+  # Saida para stderr: o stdout deste script e somente o caminho do backup (lido por outros scripts).
+  bash -c "$BACKUP_COPIA_CMD" copia "$arquivo" >&2
 fi
 
 find "$DESTINO" -maxdepth 1 -name 'prosint-*.sql.gz*' -type f -mtime +"$RETENCAO_DIAS" -print -delete >&2

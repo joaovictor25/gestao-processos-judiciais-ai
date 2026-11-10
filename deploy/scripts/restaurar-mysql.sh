@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Restaura um backup gerado por backup-mysql.sh SUBSTITUINDO o banco atual.
 # Antes de restaurar: valida o checksum, gera um backup de seguranca do estado atual e para o back-end.
-# Uso: deploy/scripts/restaurar-mysql.sh backups/prosint-AAAAMMDDTHHMMSSZ.sql.gz --confirmar-substituicao
+# Uso: bash deploy/scripts/restaurar-mysql.sh backups/prosint-AAAAMMDDTHHMMSSZ.sql.gz --confirmar-substituicao
 set -Eeuo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
@@ -19,7 +19,7 @@ fi
 gzip -t "$arquivo"
 
 log "Backup de seguranca do estado atual"
-"$(dirname "${BASH_SOURCE[0]}")/backup-mysql.sh" >&2
+bash "$(dirname "${BASH_SOURCE[0]}")/backup-mysql.sh" >&2
 
 log "Parando o back-end para impedir gravacoes durante a restauracao"
 dc stop backend

@@ -146,6 +146,10 @@ bash deploy/scripts/verificar-rede.sh 172.31.250 prosint   # se colidir: PROSINT
 docker compose build --pull
 docker compose up -d --wait --wait-timeout 420
 docker compose ps                 # 4 serviços "healthy"; só o proxy com 0.0.0.0:80/443
+# Bindings efetivos (docker inspect). Não use "docker compose port" para provar ausência de
+# publicação: para portas apenas expostas (EXPOSE) ele imprime ":0" com código 0.
+docker inspect $(docker compose ps -aq) | python3 deploy/scripts/verificar-portas.py --projeto prosint
+ss -Hltn | grep -E ':(8080|3306|33060)\b' || echo "nenhuma porta interna escutando no host"
 
 # 7. Verificação externa
 curl -sI https://prosint.tech | head -n 5                 # HTTP/2 200 + strict-transport-security
@@ -311,9 +315,19 @@ e sem `Server`.
 4. Rotas React, cache de assets e HTML, redirecionamento HTTP → HTTPS, cabeçalhos, `/api` preservado e
    endpoints internos bloqueados.
 5. Cadastro, login e processo; persistência após `down` + `up`; Flyway sem reaplicação.
-6. Back-end e MySQL inacessíveis pelo host e sem saída para a internet.
+6. Back-end e MySQL inacessíveis pelo host e sem saída para a internet. A prova usa três fontes:
+   - bindings efetivos do `docker inspect` (`HostConfig.PortBindings` e `NetworkSettings.Ports`, registrados no log);
+   - nenhum socket do host escutando em 8080/3306/33060;
+   - conexão recusada nessas portas em **todos** os endereços IPv4/IPv6 do host.
 7. `X-Forwarded-For` e `Forwarded` falsificados não contornam o limite de login (429).
-8. Backup com checksum e restauração testada em um MySQL descartável.
+8. Backup com checksum e restauração testada em um MySQL descartável, exigindo usuário e processo no dump.
+9. Restauração real com `restaurar-mysql.sh` na stack de homologação:
+   - um processo criado depois do backup desaparece, e o processo do backup volta;
+   - o backup de segurança é criado antes da substituição;
+   - Flyway, login e IPs fixos continuam íntegros.
+
+Os scripts são sempre chamados com `bash`, então não dependem do bit executável. Isso evita falhas em
+checkout feito no Windows ou em cópia por `scp`/zip.
 
 Para inspecionar a stack depois do teste: `MANTER=1 bash deploy/scripts/homologacao.sh` e abra
 `https://localhost:18443` (certificado da CA interna do Caddy). Para remover depois:

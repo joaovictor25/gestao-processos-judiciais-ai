@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Cria os arquivos de segredo usados pelo compose.yaml (Docker secrets -> /run/secrets).
 # Executar NA VPS, uma unica vez. Arquivos existentes nunca sao sobrescritos.
-# Uso: deploy/scripts/gerar-segredos.sh [diretorio]   (padrao: ./secrets)
+# Uso: bash deploy/scripts/gerar-segredos.sh [diretorio]   (padrao: ./secrets)
 #
 # Permissoes: diretorio 700 (somente o dono do deploy e o root atravessam) e arquivos 444, pois os
 # conteineres leem com usuarios proprios (MySQL uid 999, back-end uid 10001).

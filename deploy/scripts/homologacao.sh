@@ -2,7 +2,7 @@
 # Homologacao automatizada da stack Docker do ProSint com credenciais ficticias e banco descartavel.
 # Projeto Compose isolado (prosint-homolog): nunca toca volumes, redes ou conteineres de producao.
 # O back-end roda sem rede de saida: nenhuma API externa real e consumida.
-# Uso: deploy/scripts/homologacao.sh            (MANTER=1 preserva a stack ao final para inspecao)
+# Uso: bash deploy/scripts/homologacao.sh            (MANTER=1 preserva a stack ao final para inspecao)
 set -Eeuo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
@@ -41,6 +41,11 @@ diagnosticar_rede() {
     echo; echo "== enderecos por conteiner do projeto"
     dc ps -aq | xargs -r docker inspect \
       --format '{{.Name}} {{.State.Status}} {{range $r, $c := .NetworkSettings.Networks}}{{$r}}={{$c.IPAddress}} {{end}}'
+    # Somente portas: o docker inspect completo nao e gravado (contem variaveis de ambiente).
+    echo; echo "== bindings de portas (HostConfig.PortBindings | NetworkSettings.Ports)"
+    dc ps -aq | xargs -r docker inspect \
+      --format '{{.Name}} {{json .HostConfig.PortBindings}} | {{json .NetworkSettings.Ports}}'
+    echo; echo "== sockets TCP em escuta no host"; ss -Hltn 2>/dev/null || true
     echo; echo "== rotas IPv4 do host"; ip -4 route show 2>/dev/null || true
   } > "$DIAGNOSTICO_REDE" 2>&1 || true
   echo "Diagnostico de rede: $DIAGNOSTICO_REDE" >&2
@@ -91,7 +96,7 @@ plano_homologacao() { dc config --format json | python3 "$RAIZ/deploy/scripts/ve
 verificar "plano de enderecos da producao (IPs fixos fora da faixa dinamica)" plano_producao
 verificar "plano de enderecos da homologacao (overrides preservam IPs fixos)" plano_homologacao
 verificar "sub-rede $PREFIXO.0/24 livre (outras redes Docker e rotas do host)" \
-  "$RAIZ/deploy/scripts/verificar-rede.sh" "$PREFIXO" "$PROSINT_PROJECT"
+  bash "$RAIZ/deploy/scripts/verificar-rede.sh" "$PREFIXO" "$PROSINT_PROJECT"
 (( falhas == 0 )) || { echo "Configuracao invalida; build e inicializacao nao executados." >&2; exit 1; }
 
 log "3. Build das imagens"
@@ -170,14 +175,45 @@ verificar "Flyway nao reaplicou migracoes" test \
   "$(mysql_root sh -c 'exec mysql -uroot -N -B -e "select count(*) from \`$MYSQL_DATABASE\`.flyway_schema_history"')" = "1"
 
 log "7. Isolamento de rede"
-for servico in backend:8080 mysql:3306 frontend:8080; do
-  verificar "${servico%%:*} sem porta publicada no host" test -z "$(dc port "${servico%%:*}" "${servico##*:}" 2>/dev/null)"
-done
-host_sem_portas() { ! (exec 3<>/dev/tcp/127.0.0.1/3306) 2>/dev/null && ! curl -s --max-time 3 -o /dev/null http://127.0.0.1:8080/; }
+# "docker compose port" nao serve para provar ausencia: para porta apenas EXPOSE (8080 do frontend e do
+# backend, 3306/33060 do MySQL) ele imprime ":0" com codigo 0. Usa os dados efetivos do docker inspect.
+portas_efetivas() {
+  local ids
+  ids="$(dc ps -aq)" && [[ -n "$ids" ]] || return 1
+  # shellcheck disable=SC2086
+  docker inspect $ids | python3 "$RAIZ/deploy/scripts/verificar-portas.py" --projeto "$PROSINT_PROJECT" \
+    --esperado-proxy "127.0.0.1:18080->80/tcp,127.0.0.1:18443->443/tcp"
+}
+verificar "bindings efetivos: somente o proxy publica, apenas em 127.0.0.1:18080/18443" portas_efetivas
+
+# Portas internas dos servicos: nao podem existir em NENHUMA interface do host.
+PORTAS_INTERNAS="8080 3306 33060"
+sem_escuta_no_host() {
+  local escutas
+  command -v ss >/dev/null || { echo "    ss indisponivel" >&2; return 1; }
+  escutas="$(ss -Hltn | awk '{print $4}' | grep -E ':(8080|3306|33060)$' || true)"
+  echo "    sockets TCP em escuta em 8080/3306/33060 (qualquer endereco): ${escutas:-nenhum}" >&2
+  [[ -z "$escutas" ]]
+}
+sem_conexao_em_interfaces() {
+  local lista endereco porta abertos=""
+  command -v ip >/dev/null || { echo "    ip indisponivel" >&2; return 1; }
+  # Todos os enderecos IPv4/IPv6 do host (inclui loopback, interface publica e pontes Docker).
+  lista="$(ip -o addr show | awk '{print $4}' | cut -d/ -f1 | grep -v '^fe80' || true)"
+  [[ -n "$lista" ]] || { echo "    nenhum endereco encontrado" >&2; return 1; }
+  for endereco in $lista; do
+    for porta in $PORTAS_INTERNAS; do
+      if timeout 2 bash -c "exec 3<>/dev/tcp/$endereco/$porta" 2>/dev/null; then abertos+=" $endereco:$porta"; fi
+    done
+  done
+  echo "    enderecos do host testados: $(tr '\n' ' ' <<< "$lista")" >&2
+  [[ -z "$abertos" ]] || { echo "    conexao aceita em:$abertos" >&2; return 1; }
+}
+verificar "nenhum socket do host escutando em 8080/3306/33060" sem_escuta_no_host
+verificar "8080/3306/33060 recusadas em todos os enderecos do host" sem_conexao_em_interfaces
 mysql_sem_saida() { ! dc exec -T mysql timeout 5 bash -c 'exec 3<>/dev/tcp/1.1.1.1/80' 2>/dev/null; }
 backend_sem_saida() { ! dc exec -T backend curl -s --max-time 5 -o /dev/null http://1.1.1.1/; }
 backend_alcanca_mysql() { dc exec -T backend timeout 5 bash -c 'exec 3<>/dev/tcp/mysql/3306'; }
-verificar "nada escutando em 127.0.0.1:8080 e :3306 do host" host_sem_portas
 verificar "MySQL sem saida para a internet" mysql_sem_saida
 verificar "back-end de homologacao sem saida para a internet" backend_sem_saida
 verificar "back-end alcanca o MySQL pela rede interna" backend_alcanca_mysql
@@ -192,10 +228,38 @@ done
 verificar "limite por IP aplicado ao IP real apesar dos cabecalhos ($codigos)" grep -q 429 <<< "$codigos"
 
 log "9. Backup e teste de restauracao em banco descartavel"
-backup="$("$RAIZ/deploy/scripts/backup-mysql.sh")"
+# Scripts sempre via "bash": a execucao nao depende do bit executavel (checkout no Windows, scp, zip).
+if ! backup="$(bash "$RAIZ/deploy/scripts/backup-mysql.sh")" || [[ ! -s "$backup" ]]; then
+  erro "backup gerado"; exit 1
+fi
+ok "backup gerado ($(basename "$backup"))"
 checksum_ok() { (cd "$(dirname "$backup")" && sha256sum -c "$(basename "$backup").sha256" >/dev/null); }
-verificar "backup gerado com checksum" checksum_ok
-verificar "backup restauravel e consistente" "$RAIZ/deploy/scripts/testar-restauracao.sh" "$backup"
+verificar "checksum SHA-256 do backup confere" checksum_ok
+verificar "backup restauravel e consistente em MySQL descartavel" \
+  env EXIGIR_DADOS=1 bash "$RAIZ/deploy/scripts/testar-restauracao.sh" "$backup"
+
+log "10. Restauracao real na stack de homologacao (restaurar-mysql.sh)"
+historico_flyway() {
+  mysql_root sh -c 'exec mysql -uroot -N -B -e "select group_concat(concat(version,\":\",success)) from \`$MYSQL_DATABASE\`.flyway_schema_history"'
+}
+criar_processo() {
+  test "$(status -H "Authorization: Bearer $token" -H 'Content-Type: application/json' \
+    -d "{\"numeroProcesso\":\"$1\",\"tribunal\":\"TJPR\"}" "$HTTPS/api/processo/cadastrar")" = 200
+}
+listado() { curl -sk -H "Authorization: Bearer $token" "$HTTPS/api/processo/listar-usuario" | grep -q "\"$1\""; }
+nao_listado() { ! listado "$1"; }
+quantidade_backups() { find "$BACKUP_DIR" -maxdepth 1 -name 'prosint-*.sql.gz' -type f | wc -l; }
+verificar "alteracao posterior ao backup gravada (HOMOLOG-POS-BACKUP)" criar_processo HOMOLOG-POS-BACKUP
+verificar "alteracao posterior visivel antes da restauracao" listado HOMOLOG-POS-BACKUP
+backups_antes="$(quantidade_backups)"
+restaurar() { bash "$RAIZ/deploy/scripts/restaurar-mysql.sh" "$backup" --confirmar-substituicao; }
+verificar "restaurar-mysql.sh: checksum, backup de seguranca, parada, importacao e subida" restaurar
+verificar "backup de seguranca criado antes de substituir o banco" test "$(quantidade_backups)" -gt "$backups_antes"
+verificar "dados do backup presentes apos restauracao (HOMOLOG-0001)" listado HOMOLOG-0001
+verificar "alteracao posterior ao backup desfeita pela restauracao" nao_listado HOMOLOG-POS-BACKUP
+verificar "historico Flyway integro apos restauracao" test "$(historico_flyway)" = "1:1"
+verificar "login funciona apos restauracao" test -n "$(entrar)"
+verificar "IPs fixos preservados apos reinicio do back-end" enderecos_efetivos
 
 echo
 if (( falhas > 0 )); then echo "Homologacao: $falhas verificacao(oes) falharam." >&2; exit 1; fi
