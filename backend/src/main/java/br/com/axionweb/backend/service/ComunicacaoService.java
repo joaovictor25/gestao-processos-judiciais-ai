@@ -114,6 +114,9 @@ public class ComunicacaoService {
         return resposta.getItems()
                 .stream()
                 .map(comunicacao -> {
+                    if (comunicacao == null) {
+                        throw new RestClientException("Resposta DJEN contém uma comunicação nula");
+                    }
 
                     DadosComunicacaoDTO dados =
                             new DadosComunicacaoDTO();

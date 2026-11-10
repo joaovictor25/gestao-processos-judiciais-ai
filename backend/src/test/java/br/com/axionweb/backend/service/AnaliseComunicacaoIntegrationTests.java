@@ -199,6 +199,20 @@ class AnaliseComunicacaoIntegrationTests {
     }
 
     @Test
+    void registroNuloDoDjenRetornaFalhaControladaEPreservaPublicacoesAnteriores() throws Exception {
+        salvar("Publicação anterior.");
+        djen.expect(anything()).andRespond(withSuccess("{\"items\":[null]}", MediaType.APPLICATION_JSON));
+
+        mvc.perform(post("/api/dados/comunicacoes/{id}/pesquisar", processoId).header("Authorization", tokenDono)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"texto\":\"contrato\"}"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.codigo").value("CONSULTA_DJEN_FALHOU"));
+
+        assertThat(comunicacoes.findByProcessoIdOrderByIdAsc(processoId)).singleElement()
+                .extracting(Comunicacao::getTexto).isEqualTo("Publicação anterior.");
+    }
+
+    @Test
     void enviaSomenteTextosUnicosCategoriasSelecionadasERetornaEvidencias() throws Exception {
         salvar("Foi determinada apresentação do contrato. Custas de R$ 5.000,00.");
         salvar("  Foi determinada apresentação do contrato.  Custas de R$ 5.000,00.  ");

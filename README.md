@@ -9,7 +9,7 @@ Este guia explica como baixar e executar o projeto **na sua máquina, em ambient
 | Backend — Java/Spring Boot | Autenticação, banco e integrações | `http://localhost:8080` |
 | Frontend — React/Vite | Telas acessadas pelo navegador | **http://localhost:5173** |
 
-**Sobre os dados:** o banco padrão é H2 em memória. Ele é criado automaticamente, mas **reiniciar o backend apaga os usuários, processos e resultados cadastrados nessa execução**. Não é necessário instalar MySQL para seguir este guia.
+**Sobre os dados:** no perfil explícito `dev`, o banco é H2 em memória. Ele é criado automaticamente, mas **reiniciar o backend apaga os usuários, processos e resultados cadastrados nessa execução**. Não é necessário instalar MySQL para seguir este guia.
 
 ## 1. Instalar os requisitos
 
@@ -76,7 +76,7 @@ Abra um terminal na **raiz do projeto**. Para a primeira execução, não é nec
 ```powershell
 cd backend
 .\mvnw.cmd -version
-.\mvnw.cmd spring-boot:run
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 
 **Linux/macOS:**
@@ -84,7 +84,7 @@ cd backend
 ```sh
 cd backend
 sh ./mvnw -version
-sh ./mvnw spring-boot:run
+sh ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 O comando `-version` mostra o Java utilizado pelo Maven; confira que é 25 ou superior. Usar `sh ./mvnw` permite executar o wrapper mesmo quando o ZIP não preserva a permissão de execução do arquivo.
@@ -160,14 +160,14 @@ Cadastro, login e acesso à sua conta permitem conferir a instalação sem confi
 
 ```powershell
 $env:GEMINI_API_KEY = "COLE_SUA_CHAVE_AQUI"
-.\mvnw.cmd spring-boot:run
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 
 **Linux/macOS:**
 
 ```sh
 export GEMINI_API_KEY="COLE_SUA_CHAVE_AQUI"
-sh ./mvnw spring-boot:run
+sh ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 Esses comandos configuram a variável apenas nesse terminal e nos processos iniciados por ele. Ao abrir um terminal novo, configure-a novamente. O backend **não carrega automaticamente um arquivo `.env`**.
@@ -184,7 +184,7 @@ Nas próximas execuções, abra dois terminais nas pastas indicadas:
 
 | Pasta do terminal | Windows — PowerShell | Linux/macOS |
 | --- | --- | --- |
-| `backend` | `.\mvnw.cmd spring-boot:run` | `sh ./mvnw spring-boot:run` |
+| `backend` | `.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"` | `sh ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev` |
 | `frontend` | `npm.cmd run dev` | `npm run dev` |
 
 Não é necessário copiar o `.env` ou reinstalar dependências toda vez. Execute `npm ci` novamente quando atualizar o `package-lock.json`. Se usar Gemini, configure `GEMINI_API_KEY` no terminal do backend antes de iniciá-lo.
@@ -203,7 +203,7 @@ Não é necessário copiar o `.env` ou reinstalar dependências toda vez. Execut
 | O navegador mostra erro de conexão ao cadastrar ou entrar | Confira se o backend mostrou `Started BackendApplication`, se os dois terminais continuam abertos e se `frontend/.env` aponta para a porta correta. Reinicie o Vite após editar o `.env`. |
 | Ao abrir `localhost:8080`, aparece 401 | A porta 8080 é a API e exige autenticação nas rotas privadas. A interface fica em **http://localhost:5173**. |
 | O login parou de funcionar após reiniciar o backend | O H2 em memória foi recriado. Cadastre a conta novamente. |
-| `JWT_SECRET` exigido na inicialização | Confira se você ativou um perfil diferente de `dev` por uma variável anterior. O guia usa o perfil padrão `dev`; MySQL/produção exigem configuração própria. |
+| Perfil Spring ou `JWT_SECRET` exigido na inicialização | O perfil é obrigatório. O guia usa `dev`; MySQL/produção usam `prod` e exigem configuração externa própria. |
 | Falha ao baixar dependências | Confira internet, proxy e acesso aos repositórios Maven/npm. A primeira execução precisa baixar arquivos. |
 | Erro ou espera ao consultar DataJud/DJEN/Gemini | Confira conexão, chave/modelo do Gemini quando aplicável e a resposta exibida. Os provedores podem limitar ou recusar consultas. |
 
@@ -236,12 +236,12 @@ Se a porta 8080 estiver ocupada, inicie o backend na 8081, dentro de `backend`:
 ```powershell
 # Windows — PowerShell
 $env:SERVER_PORT = "8081"
-.\mvnw.cmd spring-boot:run
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 
 ```sh
 # Linux/macOS
-SERVER_PORT=8081 sh ./mvnw spring-boot:run
+SERVER_PORT=8081 sh ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 Depois, altere `frontend/.env` para `VITE_API_URL=http://localhost:8081` e reinicie o frontend.

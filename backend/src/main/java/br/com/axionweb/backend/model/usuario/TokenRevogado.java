@@ -11,7 +11,7 @@ import java.time.Instant;
 })
 public class TokenRevogado {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     // Logouts simultâneos podem registrar o mesmo hash sem conflito entre transações.

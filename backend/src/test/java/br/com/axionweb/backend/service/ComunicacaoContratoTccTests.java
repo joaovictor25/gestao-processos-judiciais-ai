@@ -75,7 +75,10 @@ class ComunicacaoContratoTccTests {
     @Test void registroNuloDeveSerRejeitadoComoFalhaDeIntegracaoControlada() {
         servidor.expect(anything()).andRespond(withSuccess("{\"items\":[null]}", MediaType.APPLICATION_JSON));
         // Requisito de robustez: resposta estruturalmente inválida não deve escapar como NPE.
-        assertThatThrownBy(() -> service.consumirApiComunicacao(parametros())).isInstanceOf(RestClientException.class);
+        assertThatThrownBy(() -> service.consumirApiComunicacao(parametros()))
+                .isInstanceOf(RestClientException.class)
+                .isNotInstanceOf(NullPointerException.class)
+                .hasMessageContaining("comunicação nula");
     }
 
     private br.com.axionweb.backend.dto.comunicacao.ParametrosComunicacaoDTO parametros() {

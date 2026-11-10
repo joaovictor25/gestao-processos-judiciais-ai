@@ -1,6 +1,6 @@
 # Backend
 
-API em Java 25 e Spring Boot 4.1.1, com Spring Security, JPA e H2. Para baixar o projeto e iniciar os dois serviços, siga primeiro o [guia de instalação na raiz](../README.md).
+API em Java 25 e Spring Boot 4.1.1, com Spring Security, JPA, H2 para desenvolvimento e MySQL/Flyway para produção. Para baixar o projeto e iniciar os dois serviços, siga primeiro o [guia de instalação na raiz](../README.md).
 
 ## Executar
 
@@ -10,19 +10,19 @@ Windows — PowerShell:
 
 ```powershell
 .\mvnw.cmd -version
-.\mvnw.cmd spring-boot:run
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 
 Linux/macOS:
 
 ```sh
 sh ./mvnw -version
-sh ./mvnw spring-boot:run
+sh ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 O Maven deve utilizar JDK 25 ou superior. O wrapper baixa a distribuição Maven e as dependências necessárias. Aguarde `Started BackendApplication`; a porta padrão é **8080**. Encerre com `Ctrl+C`.
 
-O perfil padrão é `dev`. O banco H2 é criado automaticamente em memória e não exige instalação externa. Cadastro e login funcionam sem chave Gemini. As sínteses de IA exigem `GEMINI_API_KEY`.
+O perfil deve ser selecionado explicitamente. Para desenvolvimento use `dev`; ele cria um H2 em memória e não exige instalação externa. Sem um perfil reconhecido, a aplicação encerra a inicialização para impedir uso acidental de H2. Cadastro e login funcionam sem chave Gemini. As sínteses de IA exigem `GEMINI_API_KEY`.
 
 ## Configuração do ambiente
 
@@ -35,20 +35,21 @@ Configure variáveis **no mesmo terminal que iniciará o backend**. Este projeto
 | `GEMINI_BASE_URL` | Para alterar o endereço do provedor, inclusive em testes locais | `https://generativelanguage.googleapis.com` |
 | `JWT_SECRET` | Para manter uma chave de autenticação estável; obrigatória fora de `dev` | Chave aleatória por inicialização no perfil `dev` |
 | `SERVER_PORT` | Quando precisar usar outra porta | `8080` |
-| `SPRING_PROFILES_ACTIVE` | Para selecionar explicitamente outro perfil | Sem valor, utiliza o perfil padrão `dev` |
+| `SPRING_PROFILES_ACTIVE` | Seleciona `dev`, `test`, `mysql` ou `prod` | Obrigatório |
+| `DATAJUD_API_KEY` | Credencial DataJud enviada somente pelo backend | Vazio em desenvolvimento; obrigatório em `prod` |
 
 Exemplo com Gemini, ainda dentro de `backend`; substitua o texto pela sua chave:
 
 ```powershell
 # Windows — PowerShell
 $env:GEMINI_API_KEY = "COLE_SUA_CHAVE_AQUI"
-.\mvnw.cmd spring-boot:run
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 
 ```sh
 # Linux/macOS
 export GEMINI_API_KEY="COLE_SUA_CHAVE_AQUI"
-sh ./mvnw spring-boot:run
+sh ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 As variáveis definidas assim valem para esse terminal e seus processos. Reinicie o backend após alterar a configuração. Credenciais não devem ser colocadas no código ou em arquivos versionados.
@@ -74,30 +75,31 @@ Com o backend em execução no perfil `dev`, abra **http://localhost:8080/h2/**.
 
 Clique em **Connect**. Se alterou a porta ou o datasource, use os valores correspondentes. `sa` é o usuário do banco; o login da aplicação é a conta criada no frontend. O console só está habilitado no perfil `dev`, com acesso local.
 
-## Usar um MySQL existente
+## MySQL e perfil de produção
 
-O caminho de instalação inicial é o H2 do guia principal. O perfil opcional `mysql` foi preparado para um **banco com o esquema da aplicação já existente**: ele usa `ddl-auto=validate`, portanto não cria automaticamente as tabelas.
+O perfil `prod` exige MySQL, executa as migrações Flyway de `src/main/resources/db/migration/mysql` e depois valida o schema com `ddl-auto=validate`. A baseline `V1__baseline_prosint.sql` cria as nove tabelas da aplicação em um banco vazio com `utf8mb4`.
 
-Os scripts abaixo são migrações para esse esquema. Não constituem uma instalação completa de um banco vazio e não são executados automaticamente pelo programa:
+Os scripts abaixo são incrementos legados anteriores ao Flyway. Seu estado final já foi incorporado à baseline e eles não devem ser aplicados novamente em bancos gerenciados pelo Flyway:
 
 1. [Sínteses DataJud](schema/20261103_datajud_sinteses.sql).
 2. [Pesquisas e sínteses de comunicações](schema/20261104_comunicacao_sinteses.sql).
 3. [Fila e cache DataJud](schema/20261104_datajud_fila.sql).
 
-Antes de atualizar um banco existente, faça backup e confira quais migrações ainda precisam ser aplicadas. Reaplicar scripts que adicionam colunas ou tabelas já existentes pode falhar.
+Não aponte a baseline para um schema legado não vazio. Para adotar Flyway em um banco existente, faça backup, compare o schema real com a baseline e defina um procedimento de baseline controlado. `baseline-on-migrate` não é habilitado automaticamente.
 
 Depois de preparar o esquema, configure no ambiente:
 
 | Variável | Conteúdo |
 | --- | --- |
-| `SPRING_PROFILES_ACTIVE` | `mysql` |
+| `SPRING_PROFILES_ACTIVE` | `prod` |
 | `MYSQL_URL` | URL JDBC do banco, por exemplo `jdbc:mysql://localhost:3306/gestao_processos` |
 | `MYSQL_USER` | Usuário com acesso ao banco |
 | `MYSQL_PASSWORD` | Senha desse usuário |
 | `JWT_SECRET` | Chave aleatória em Base64 com pelo menos 32 bytes |
+| `DATAJUD_API_KEY` | Chave DataJud obtida e rotacionada fora da aplicação |
 | `GEMINI_API_KEY` | Sua chave, se utilizar sínteses de IA |
 
-Inicie com o mesmo comando `spring-boot:run`. Nesse perfil, o console H2 fica desabilitado. Um erro de validação do esquema precisa ser resolvido no banco; não substitua `validate` por `create` em um banco que contém dados.
+As variáveis podem ser fornecidas pelo ambiente ou por arquivos de mesmo nome montados em `/run/secrets`. Nesse perfil, o console H2 fica desabilitado. Flyway `clean` fica desabilitado e um erro de migração ou validação interrompe a inicialização; não substitua `validate` por `create` ou `update`.
 
 ## Integrações externas
 
@@ -140,6 +142,6 @@ Os testes são uma verificação adicional; não é necessário executá-los par
 sh ./mvnw -B -ntp test
 ```
 
-Os testes utilizam bancos H2 de teste e integrações simuladas. Os relatórios locais ficam em `target/surefire-reports` e são ignorados pelo Git.
+Os testes existentes utilizam H2 e integrações simuladas. `MySqlPersistenceIntegrationTests` usa Testcontainers com `mysql:8.4` e é ignorado automaticamente quando Docker não está disponível. Nenhum desses testes consome APIs externas reais. Os relatórios locais ficam em `target/surefire-reports` e são ignorados pelo Git.
 
 **Pendência conhecida nesta versão:** `ComunicacaoContratoTccTests.registroNuloDeveSerRejeitadoComoFalhaDeIntegracaoControlada` falha no tratamento de uma comunicação nula. Na última execução de referência da versão atual, 321 de 322 testes passaram. Essa falha da suíte não impede iniciar a aplicação com `spring-boot:run`; ela precisa ser corrigida para que a suíte completa fique verde.

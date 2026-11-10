@@ -21,7 +21,7 @@ import java.time.LocalDate;
 @Table(name = "datajud_estatistica", indexes = @jakarta.persistence.Index(name = "idx_datajud_sinteses", columnList = "processo_id,sintese_gerada_em,id"))
 public class DataJud {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

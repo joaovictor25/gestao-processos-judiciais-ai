@@ -14,3 +14,9 @@
 .env
 .env.*
 !.env.example
+
+# Segredos de runtime e overrides locais de producao
+/secrets/
+/.secrets/
+*.secret
+/backend/src/main/resources/application-prod-local.properties
