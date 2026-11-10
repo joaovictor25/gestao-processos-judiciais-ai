@@ -13,10 +13,10 @@
 .icon-tile { width: 51px; height: 55px; border-radius: var(--radius-md); display: grid; place-items: center; flex-shrink: 0; }
 .icon-tile svg { width: 28px; height: 28px; stroke-width: 1.8; }
 .tone-blue { color: var(--color-accent); background: var(--color-accent-soft); }
-.tone-gold { color: var(--color-warning); background: var(--color-warning-soft); }
+.tone-gold { color: var(--color-ai-icon); background: var(--color-secondary-soft); }
 .tone-green { color: var(--color-success); background: var(--color-success-soft); }
 .tone-red { color: var(--color-danger); background: var(--color-danger-soft); }
-.tone-violet { color: var(--color-violet); background: var(--color-violet-soft); }
+.tone-violet { color: var(--color-ai-icon); background: var(--color-ai-soft); }
 .metric-card > div { min-width: 0; }
 .metric-card h2 { font-size: 10px; text-transform: uppercase; font-weight: 650; line-height: 1.5; letter-spacing: .15px; margin: 2px 0 9px; color: var(--color-text-secondary); }
 .metric-value { display: block; color: var(--color-primary); font-size: 35px; line-height: 1.05; letter-spacing: -1px; margin-bottom: 8px; font-weight: 650; font-variant-numeric: tabular-nums; }

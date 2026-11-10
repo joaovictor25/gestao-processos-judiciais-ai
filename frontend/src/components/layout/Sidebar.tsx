@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Icon } from '../ui/Icon';
 import { mensagemErro } from '../../services/api';
+import logoClara from '../../assets/prosint-logo-clara.png';
 
 export function iniciais(nome: string) {
   const partes = nome.trim().split(/\s+/);
@@ -24,7 +25,7 @@ export function Sidebar({ close }: { close: () => void }) {
   }
 
   return <aside className="sidebar" id="main-sidebar" aria-label="Menu principal">
-    <div className="sidebar-brand"><Icon name="scales" /><span>AXION<small>GESTÃO JURÍDICA</small></span>
+    <div className="sidebar-brand"><img className="sidebar-logo" src={logoClara} alt="ProSint" width="3000" height="712" />
       <button type="button" className="sidebar-close icon-button" aria-label="Fechar menu" onClick={close}><Icon name="close" /></button>
     </div>
     <div className="sidebar-section-label">ESCRITÓRIO</div>

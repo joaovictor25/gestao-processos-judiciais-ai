@@ -1,36 +1,109 @@
+/*
+ * Identidade visual ProSint — fonte única da paleta.
+ * Marca: azul-marinho #0B2942 (base) e dourado #D2A64F (acento).
+ * Regra de acessibilidade: dourado nunca é cor de texto sobre fundo claro (2,3:1);
+ * texto dourado só sobre o azul-marinho (6,6:1). Botão dourado usa texto azul-marinho.
+ */
 :root {
   color-scheme: light;
-  --color-primary: #0b2942;
-  --color-secondary: #d2a64f;
-  --color-accent: #1763f6;
-  --color-surface: #ffffff;
-  --color-background: #eef4f8;
-  --color-text-primary: #14213d;
-  --color-text-secondary: #69758a;
-  --color-text-muted: #919cac;
-  --color-border: #e2e8f0;
-  --color-success: #009f68;
-  --color-warning: #94600b;
-  --color-danger: #dc354c;
-  --color-violet: #8750de;
-  --color-cyan: #36b6c4;
-  --color-chart-other: #cbd5df;
-  --color-on-primary: var(--color-surface);
-  --color-on-accent: var(--color-surface);
-  --color-sidebar-muted: color-mix(in srgb, var(--color-surface) 66%, var(--color-primary));
-  --color-sidebar-active: color-mix(in srgb, var(--color-primary) 82%, var(--color-surface));
-  --color-border-strong: color-mix(in srgb, var(--color-border) 75%, var(--color-text-secondary));
-  --color-accent-soft: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
-  --color-success-soft: color-mix(in srgb, var(--color-success) 9%, var(--color-surface));
+
+  /* Escala azul-marinho (cor principal) */
+  --navy-50: #eef3f8;
+  --navy-100: #dce6ef;
+  --navy-200: #b9cbdc;
+  --navy-300: #9fb3c8;
+  --navy-400: #5c7f9f;
+  --navy-500: #355a7c;
+  --navy-600: #1c3f5e;
+  --navy-650: #163552;
+  --navy-700: #0b2942; /* base */
+  --navy-800: #082036;
+  --navy-900: #051628;
+
+  /* Escala dourada (cor secundária / acentos) */
+  --gold-50: #fbf6ec;
+  --gold-100: #f6ebd3;
+  --gold-200: #edd7a8;
+  --gold-300: #e3c27b;
+  --gold-400: #d9b262;
+  --gold-500: #d2a64f; /* base */
+  --gold-600: #b88b36; /* bordas/ícones sobre claro (3,1:1, não-texto) */
+  --gold-700: #8f6b27; /* único tom dourado aceitável como texto sobre branco (4,9:1) */
+  --gold-800: #6b4f1c;
+  --gold-900: #4a3713;
+
+  /* Neutros harmonizados com o azul */
+  --gray-0: #ffffff;
+  --gray-50: #f6f8fa;
+  --gray-100: #eef2f6;
+  --gray-200: #e1e7ee;
+  --gray-300: #c9d2dc;
+  --gray-400: #8e9aa8;
+  --gray-500: #6b7888; /* 4,5:1 sobre branco */
+  --gray-600: #4f5d6e;
+  --gray-700: #364353;
+  --gray-800: #1f2b3a;
+  --gray-900: #111a26;
+
+  /* Semânticas (independentes da marca) */
+  --red-600: #c42b40;
+  --green-700: #047857;
+  --amber-700: #94600b;
+  --blue-600: #1d5fd0;
+
+  /* Tokens de uso — os componentes consomem apenas estes */
+  --color-primary: var(--navy-700);
+  --color-primary-hover: var(--navy-600);
+  --color-primary-active: var(--navy-800);
+  --color-primary-soft: var(--navy-50);
+  --color-secondary: var(--gold-500);
+  --color-secondary-hover: var(--gold-400);
+  --color-secondary-active: var(--gold-600);
+  --color-secondary-soft: var(--gold-50);
+  --color-secondary-strong: var(--gold-600);
+  --color-accent: var(--color-primary);
+  --color-surface: var(--gray-0);
+  --color-background: var(--gray-50);
+  --color-surface-muted: var(--gray-100);
+  --color-text-primary: var(--navy-700);
+  --color-text-secondary: var(--gray-600);
+  --color-text-muted: var(--gray-500);
+  --color-border: var(--gray-200);
+  --color-border-strong: var(--gray-400);
+  --color-focus-ring: var(--gold-600);
+  --color-success: var(--green-700);
+  --color-warning: var(--amber-700);
+  --color-danger: var(--red-600);
+  --color-info: var(--blue-600);
+  --color-ai: var(--navy-700);
+  --color-ai-icon: var(--gold-700); /* ícones dourados sobre fundo claro (≥4,5:1) */
+  --color-chart-1: var(--navy-700);
+  --color-chart-2: var(--gold-500);
+  --color-chart-3: var(--navy-400);
+  --color-chart-4: var(--gold-200);
+  --color-chart-other: var(--gray-300);
+  --color-on-primary: var(--gray-0);
+  --color-on-secondary: var(--navy-700);
+  --color-on-accent: var(--color-on-primary);
+  --color-on-primary-muted: var(--navy-200);
+  --color-sidebar-muted: var(--navy-200);
+  --color-sidebar-active: var(--navy-650);
+  --color-sidebar-border: var(--navy-600);
+  --color-accent-soft: var(--navy-50);
+  --color-ai-soft: var(--gold-50);
+  --color-success-soft: color-mix(in srgb, var(--color-success) 8%, var(--color-surface));
   --color-warning-soft: color-mix(in srgb, var(--color-warning) 8%, var(--color-surface));
-  --color-danger-soft: color-mix(in srgb, var(--color-danger) 7%, var(--color-surface));
-  --color-violet-soft: color-mix(in srgb, var(--color-violet) 7%, var(--color-surface));
-  --color-overlay: color-mix(in srgb, var(--color-primary) 45%, transparent);
-  --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --color-danger-soft: color-mix(in srgb, var(--color-danger) 6%, var(--color-surface));
+  --color-info-soft: color-mix(in srgb, var(--color-info) 7%, var(--color-surface));
+  --color-overlay: color-mix(in srgb, var(--navy-900) 55%, transparent);
+
+  --font-family: Inter, 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
-  --shadow-card: 0 2px 10px color-mix(in srgb, var(--color-primary) 4%, transparent);
-  --shadow-popover: 0 12px 40px color-mix(in srgb, var(--color-primary) 14%, transparent);
+  --shadow-card: 0 2px 10px color-mix(in srgb, var(--color-primary) 5%, transparent);
+  --shadow-popover: 0 12px 40px color-mix(in srgb, var(--color-primary) 16%, transparent);
+  --shadow-button: 0 10px 24px -10px color-mix(in srgb, var(--color-primary) 55%, transparent);
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--color-secondary) 35%, transparent);
   --sidebar-width: 244px;
 }

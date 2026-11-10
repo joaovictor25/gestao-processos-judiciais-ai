@@ -40,18 +40,18 @@ export function Cadastro() {
   }
 
   return <div className="auth-form signup-form">
-    <header className="auth-heading"><h1>Criar sua conta</h1><p>Preencha os dados abaixo para começar a usar a plataforma.</p></header>
+    <header className="auth-heading"><h1>Crie sua conta</h1><p>Preencha os dados abaixo para começar a usar a plataforma.</p></header>
     <form onSubmit={submit} noValidate aria-busy={loading}>
-      <Input id="nome" label="Nome completo" icon="user" autoComplete="name" required
+      <Input id="nome" label="Nome completo" autoComplete="name" required
         placeholder="Digite seu nome completo" value={dados.nome} disabled={loading} maxLength={255}
         error={errors.nome} onChange={event => atualizar('nome', event.target.value)} />
-      <Input id="email" label="E-mail" icon="mail" type="email" autoComplete="email" required
-        placeholder="Digite seu e-mail" value={dados.email} disabled={loading} maxLength={254}
+      <Input id="email" label="E-mail" type="email" autoComplete="email" required
+        placeholder="seu@email.com" value={dados.email} disabled={loading} maxLength={254}
         error={errors.email} onChange={event => atualizar('email', event.target.value)} />
-      <Input id="senha" label="Senha" icon="lock" type="password" autoComplete="new-password" required
+      <Input id="senha" label="Senha" type="password" autoComplete="new-password" required
         placeholder="Crie uma senha" hint="Use pelo menos 6 caracteres." value={dados.senha} disabled={loading}
         error={errors.senha} onChange={event => atualizar('senha', event.target.value)} />
-      <Input id="confirmacao" label="Confirmar senha" icon="lock" type="password" autoComplete="new-password" required
+      <Input id="confirmacao" label="Confirmar senha" type="password" autoComplete="new-password" required
         placeholder="Confirme sua senha" value={dados.confirmacao} disabled={loading}
         error={errors.confirmacao} onChange={event => atualizar('confirmacao', event.target.value)} />
       {erro && <p className="notice notice--error" role="alert">{erro}</p>}

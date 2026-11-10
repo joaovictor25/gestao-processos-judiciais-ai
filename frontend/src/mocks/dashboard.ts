@@ -4,10 +4,10 @@ import type { DashboardResumo } from '../types/processo';
 export const dashboardDemo: DashboardResumo = {
   cadastrados: 183, emAndamento: 147, analisados: 135, aguardando: 12,
   areas: [
-    { nome: 'Cível', quantidade: 56, cor: 'var(--color-primary)' },
-    { nome: 'Trabalhista', quantidade: 35, cor: 'var(--color-secondary)' },
-    { nome: 'Previdenciário', quantidade: 26, cor: 'var(--color-accent)' },
-    { nome: 'Consumidor', quantidade: 18, cor: 'var(--color-cyan)' },
+    { nome: 'Cível', quantidade: 56, cor: 'var(--color-chart-1)' },
+    { nome: 'Trabalhista', quantidade: 35, cor: 'var(--color-chart-2)' },
+    { nome: 'Previdenciário', quantidade: 26, cor: 'var(--color-chart-3)' },
+    { nome: 'Consumidor', quantidade: 18, cor: 'var(--color-chart-4)' },
     { nome: 'Outros', quantidade: 12, cor: 'var(--color-chart-other)' },
   ],
   atividades: [
