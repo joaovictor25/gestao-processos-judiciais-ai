@@ -1,0 +1,71 @@
+# Proxy de producao do ProSint.
+# - HTTPS automatico (Let's Encrypt) assim que o DNS de PROSINT_DOMAIN apontar para a VPS;
+#   certificados e chaves ficam no volume caddy_data e sao renovados automaticamente.
+# - http:// e redirecionado para https:// automaticamente pelo Caddy (308).
+{
+	email {$ACME_EMAIL}
+	# ACME_CA permite usar o ambiente de staging do Let's Encrypt no primeiro teste real
+	# (https://acme-staging-v02.api.letsencrypt.org/directory) sem consumir limites de emissao.
+	acme_ca {$ACME_CA:https://acme-v02.api.letsencrypt.org/directory}
+	# API administrativa apenas dentro do conteiner (healthcheck); nenhuma porta publicada.
+	admin 127.0.0.1:2019
+	# Sem trusted_proxies (nenhum proxy/CDN a frente do Caddy): X-Forwarded-For/Proto/Host
+	# enviados pelo cliente sao descartados e substituidos pelos valores reais da conexao.
+	# Se um CDN for colocado a frente, configure "servers { trusted_proxies static <faixas> }".
+}
+
+(cabecalhos_seguranca) {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		-Server
+		-Via
+	}
+}
+
+(rotas_prosint) {
+	import cabecalhos_seguranca
+	encode zstd gzip
+
+	# Endpoints do Spring Boot fora de /api nunca sao encaminhados:
+	# /estatisticas/calcular (legado, sem uso pelo front-end), /h2 (somente perfil dev),
+	# /error (pagina de erro interna) e /actuator (nao instalado). Respondem 404 no proxy.
+	@internos path /estatisticas /estatisticas/* /h2 /h2/* /error /error/* /actuator /actuator/*
+	handle @internos {
+		respond 404
+	}
+
+	# API: caminho original preservado (handle, nao handle_path).
+	handle /api/* {
+		request_body {
+			max_size 2MB
+		}
+		reverse_proxy backend:8080 {
+			# RFC 7239 removido por defesa em profundidade; o back-end usa apenas X-Forwarded-*.
+			header_up -Forwarded
+			header_up -X-Real-IP
+			# Caddy define X-Forwarded-For (IP real), X-Forwarded-Proto (https) e X-Forwarded-Host.
+		}
+	}
+
+	handle {
+		reverse_proxy frontend:8080
+	}
+}
+
+{$PROSINT_DOMAIN:prosint.tech} {
+	import rotas_prosint
+	log {
+		output stdout
+		format json
+	}
+}
+
+# Opcional: habilite apenas depois de criar o registro DNS de www (evita falhas de emissao ACME).
+# www.{$PROSINT_DOMAIN:prosint.tech} {
+# 	redir https://{$PROSINT_DOMAIN:prosint.tech}{uri} permanent
+# }

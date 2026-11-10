@@ -1,0 +1,10 @@
+# Arquivos executados em Linux (VPS, conteineres e GitHub Actions) sempre com LF.
+*.sh text eol=lf
+Caddyfile text eol=lf
+*.conf text eol=lf
+*.cnf text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.env text eol=lf
+Dockerfile text eol=lf
+mvnw text eol=lf

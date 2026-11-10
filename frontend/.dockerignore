@@ -1,0 +1,10 @@
+node_modules/
+dist/
+artifacts/
+.browser-*/
+*.tsbuildinfo
+*.log
+.env
+.env.*
+Dockerfile
+.dockerignore

@@ -20,3 +20,7 @@
 /.secrets/
 *.secret
 /backend/src/main/resources/application-prod-local.properties
+
+# Infraestrutura Docker: homologacao descartavel e backups locais do MySQL
+/.homolog/
+/backups/

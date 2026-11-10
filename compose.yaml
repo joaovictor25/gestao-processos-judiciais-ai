@@ -1,0 +1,178 @@
+# ProSint em producao: proxy (Caddy) -> frontend (Nginx) | backend (Spring Boot) -> mysql (8.4 LTS).
+# Somente o proxy publica portas (80/443). Requer Docker Compose v2.24+.
+# Uso: docs/deploy-producao.md. Nunca use "docker compose down -v" em producao: apaga o banco.
+name: prosint
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  proxy:
+    image: caddy:2.11.6-alpine
+    restart: unless-stopped
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    environment:
+      PROSINT_DOMAIN: ${PROSINT_DOMAIN:-prosint.tech}
+      ACME_EMAIL: ${ACME_EMAIL:?defina ACME_EMAIL no arquivo .env}
+      ACME_CA: ${ACME_CA:-https://acme-v02.api.letsencrypt.org/directory}
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data # certificados e chaves ACME: preservar entre deploys
+      - caddy_config:/config
+    networks:
+      publica: {}
+      edge:
+        # IP fixo: o back-end confia em X-Forwarded-* somente vindos deste endereco.
+        ipv4_address: 172.31.250.2
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits: { cpus: "0.50", memory: 256M }
+    logging: *logging
+
+  frontend:
+    build:
+      context: ./frontend
+    image: prosint-frontend:${PROSINT_VERSION:-latest}
+    restart: unless-stopped
+    networks: [edge]
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    deploy:
+      resources:
+        limits: { cpus: "0.25", memory: 128M }
+    logging: *logging
+
+  backend:
+    build:
+      context: ./backend
+    image: prosint-backend:${PROSINT_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      MYSQL_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-prosint}?sslMode=REQUIRED&characterEncoding=UTF-8&connectionTimeZone=UTC
+      MYSQL_USER: ${MYSQL_USER:-prosint}
+      TRUSTED_PROXY_REGEX: '172\.31\.250\.2'
+      MYSQL_POOL_MAX_SIZE: ${MYSQL_POOL_MAX_SIZE:-10}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
+      DATAJUD_WORKER_ENABLED: ${DATAJUD_WORKER_ENABLED:-true}
+      AUTH_LOGIN_POR_IP: ${AUTH_LOGIN_POR_IP:-20}
+      AUTH_CADASTRO_POR_IP: ${AUTH_CADASTRO_POR_IP:-5}
+      IA_LIMITE_POR_USUARIO: ${IA_LIMITE_POR_USUARIO:-30}
+      IA_LIMITE_GLOBAL: ${IA_LIMITE_GLOBAL:-300}
+      TZ: UTC
+    # Lidos pelo Spring via spring.config.import=optional:configtree:/run/secrets/ (perfil prod):
+    # o nome do arquivo (target) e o nome da propriedade.
+    secrets:
+      - { source: jwt_secret, target: JWT_SECRET }
+      - { source: mysql_password, target: MYSQL_PASSWORD }
+      - { source: datajud_api_key, target: DATAJUD_API_KEY }
+      - { source: gemini_api_key, target: GEMINI_API_KEY }
+    networks:
+      - edge  # recebe trafego apenas do proxy
+      - dados # acesso ao MySQL
+      - saida # saida para DataJud, DJEN e Gemini
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    # Maior que server.shutdown=graceful + spring.lifecycle.timeout-per-shutdown-phase (30s).
+    stop_grace_period: 45s
+    deploy:
+      resources:
+        limits: { cpus: "1.50", memory: 1536M }
+        reservations: { memory: 768M }
+    logging: *logging
+
+  mysql:
+    image: mysql:8.4.11
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-prosint}
+      MYSQL_USER: ${MYSQL_USER:-prosint}
+      MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+      TZ: UTC
+    secrets: [mysql_password, mysql_root_password]
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./deploy/mysql/conf.d/prosint.cnf:/etc/mysql/conf.d/prosint.cnf:ro
+    networks: [dados]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      # TCP em 127.0.0.1: durante a inicializacao o servidor temporario aceita apenas socket,
+      # entao o conteiner so fica saudavel quando o MySQL definitivo esta pronto.
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    stop_grace_period: 60s
+    deploy:
+      resources:
+        limits: { cpus: "1.00", memory: 2048M }
+        reservations: { memory: 1024M }
+    logging: *logging
+
+networks:
+  # Unica rede com portas publicadas; tambem usada pelo Caddy para emitir certificados.
+  publica: {}
+  # Proxy <-> frontend/backend, sem saida para a internet.
+  edge:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.31.250.0/24
+  # Backend <-> MySQL, sem saida para a internet.
+  dados:
+    internal: true
+  # Saida do back-end para as APIs externas; nenhum outro servico participa.
+  saida: {}
+
+volumes:
+  # Volumes nomeados sobrevivem a "docker compose down"; so "down -v" ou "volume rm" os apagam.
+  mysql_data: {}
+  caddy_data: {}
+  caddy_config: {}
+
+# Arquivos fora do Git (.gitignore: /secrets/). Gere com deploy/scripts/gerar-segredos.sh.
+secrets:
+  jwt_secret:
+    file: ./secrets/jwt_secret
+  mysql_password:
+    file: ./secrets/mysql_password
+  mysql_root_password:
+    file: ./secrets/mysql_root_password
+  datajud_api_key:
+    file: ./secrets/datajud_api_key
+  gemini_api_key:
+    file: ./secrets/gemini_api_key

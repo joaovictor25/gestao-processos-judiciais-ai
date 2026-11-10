@@ -1,0 +1,19 @@
+# MySQL 8.4 do ProSint, dimensionado para o limite de 2 GiB do conteiner (VPS de 7,7 GiB).
+[mysqld]
+character-set-server = utf8mb4
+collation-server = utf8mb4_0900_ai_ci
+default-time-zone = '+00:00'
+skip-name-resolve
+local_infile = 0
+
+innodb_buffer_pool_size = 768M
+innodb_redo_log_capacity = 256M
+innodb_flush_log_at_trx_commit = 1
+sync_binlog = 1
+max_connections = 60
+
+# Binlog permite recuperacao ponto a ponto a partir do ultimo dump; retencao de 7 dias.
+binlog_expire_logs_seconds = 604800
+
+[client]
+default-character-set = utf8mb4

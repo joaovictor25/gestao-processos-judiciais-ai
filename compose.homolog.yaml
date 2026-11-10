@@ -1,0 +1,35 @@
+# Homologacao descartavel (deploy/scripts/homologacao.sh). Aplicar SEMPRE sobre compose.yaml com
+# outro nome de projeto (prosint-homolog), o que isola volumes e redes da producao:
+#   docker compose -p prosint-homolog -f compose.yaml -f compose.homolog.yaml --env-file deploy/homolog/homolog.env ...
+# Credenciais ficticias geradas a cada execucao, banco descartavel e back-end SEM saida para a
+# internet: nenhuma API externa real (DataJud, DJEN, Gemini) pode ser consumida.
+services:
+  proxy:
+    # Apenas loopback do host, em portas altas, para nao conflitar com uma producao na mesma maquina.
+    ports: !override
+      - "127.0.0.1:18080:80"
+      - "127.0.0.1:18443:443"
+
+  backend:
+    networks: !override
+      - edge
+      - dados
+    environment:
+      DATAJUD_WORKER_ENABLED: "false"
+      APP_DATAJUD_BASE_URL: http://acesso-externo-bloqueado.invalid
+      APP_DJEN_BASE_URL: http://acesso-externo-bloqueado.invalid
+      GEMINI_BASE_URL: http://acesso-externo-bloqueado.invalid
+      # Limite baixo para provar que X-Forwarded-For/Forwarded falsificados nao contornam o limitador.
+      AUTH_LOGIN_POR_IP: "4"
+
+secrets:
+  jwt_secret:
+    file: ./.homolog/secrets/jwt_secret
+  mysql_password:
+    file: ./.homolog/secrets/mysql_password
+  mysql_root_password:
+    file: ./.homolog/secrets/mysql_root_password
+  datajud_api_key:
+    file: ./.homolog/secrets/datajud_api_key
+  gemini_api_key:
+    file: ./.homolog/secrets/gemini_api_key
